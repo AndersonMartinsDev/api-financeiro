@@ -32,9 +32,15 @@ func Carregar() {
 	usuario := os.Getenv("DB_USUARIO")
 	senha := os.Getenv("DB_SENHA")
 	nome := os.Getenv("DB_NOME")
+	host := os.Getenv("DB_HOST")
+	porta := os.Getenv("DB_PORT")
 	db_config := "charset=utf8&parseTime=True&loc=Local"
 
-	Uri = fmt.Sprintf("%s:%s@/%s?%s", usuario, senha, nome, db_config)
+	// Uri = fmt.Sprintf("%s:%s@/%s?%s", usuario, senha, nome, db_config)
+	Uri = fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?%s", usuario, senha, host, porta, nome, db_config)
+	fmt.Println(Uri)
+
+	// fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local", DB_USER, DB_PASS, DB_HOST, DB_PORT, DB_NAME)
 
 	SecretKey = []byte(os.Getenv("SECRET_KEY"))
 }

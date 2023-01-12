@@ -17,14 +17,17 @@ func GetDespesas(w http.ResponseWriter, r *http.Request) {
 	body, _ := ioutil.ReadAll(r.Body)
 
 	var despesaFiltro models.Despesa
-	if erro := json.Unmarshal(body, &despesaFiltro); erro != nil {
-		respostas.Erro(w, http.StatusInternalServerError, erro)
-		return
+	if body != nil {
+		if erro := json.Unmarshal(body, &despesaFiltro); erro != nil {
+			respostas.Erro(w, http.StatusInternalServerError, erro)
+			return
+		}
 	}
 
 	despesas, erro := services.GetDespesas(despesaFiltro)
 	if erro != nil {
 		respostas.Erro(w, http.StatusInternalServerError, erro)
+		return
 	}
 
 	respostas.JSON(w, http.StatusOK, despesas)

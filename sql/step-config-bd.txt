@@ -1,0 +1,4 @@
+
+ALTER USER 'root'@'localhost' IDENTIFIED BY '12345';
+liberar uso extrno do banco
+update mysql.user set host = '%' where user='root';

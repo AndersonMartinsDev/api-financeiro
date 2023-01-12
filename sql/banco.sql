@@ -22,6 +22,13 @@ CREATE TABLE despesas(
     ON DELETE CASCADE
 )ENGINE = INNODB;
 
+CREATE TABLE recorrencia(
+    id bigInt auto_increment primary key,
+    meses int not null,
+    dia_vencimento int not null
+)ENGINE = INNODB;
+
+
 CREATE TABLE associacao_despesa_recorrencia(
     despesa_id bigInt,
     FOREIGN KEY(despesa_id)
@@ -32,13 +39,5 @@ CREATE TABLE associacao_despesa_recorrencia(
     REFERENCES recorrencia(id)
     ON DELETE CASCADE
 )ENGINE = INNODB;
-
-CREATE TABLE recorrencia(
-    id bigInt auto_increment primary key,
-    meses int not null,
-    dia_vencimento int not null
-)ENGINE = INNODB;
-
-
 
 
