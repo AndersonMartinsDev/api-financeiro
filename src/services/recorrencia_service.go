@@ -20,7 +20,7 @@ func NovaRecorrencia(recorrencia models.Recorrencia) (uint, error) {
 
 	repositorioRecorrencia.Insert(recorrencia)
 
-	return recorrencia.Id, nil
+	return uint(recorrencia.Id), nil
 }
 
 func DeletaRecorrencia(recorrenciaId uint) error {

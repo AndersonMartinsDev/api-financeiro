@@ -5,6 +5,25 @@ import (
 	"database/sql"
 )
 
+var (
+	query = `Select 
+				des.id,
+				des.titulo,
+				des.valor,
+				des.quitada,
+				des.fixa,
+				des.dia_vencimento,
+				des.data_cadastro,
+				env.id,
+				env.titulo
+			from despesas des
+			inner join envelope env on env.id = des.envelope_id`
+	insert                   = `Insert into despesas(titulo,valor,quitada,fixa,envelope_id,recorrencia_id) values(?,?,?,?,?,?)`
+	insertWithoutRecorrencia = `Insert into despesas(titulo,valor,quitada,fixa,envelope_id) values(?,?,?,?,?)`
+	update                   = `update despesas set valor=?, quitada=?, fixa=?, envelope_id=? where id=?`
+	delete                   = `delete from despesas where id = ?`
+)
+
 type DespesaRepositorio struct {
 	sql *sql.DB
 }
@@ -15,8 +34,8 @@ func NewInstanceDespesa(banco *sql.DB) *DespesaRepositorio {
 }
 
 // GetDespesas tras todas as despesas gerais baseada nas despesas cadastradas
-func (repositorio DespesaRepositorio) GetDespesas(despesaFiltro models.Despesa) ([]models.Despesa, error) {
-	linhas, erro := repositorio.sql.Query("Select id,titulo,valor,quitada,data_cadastro,envelope_id from despesas")
+func (repositorio DespesaRepositorio) GetDespesas() ([]models.Despesa, error) {
+	linhas, erro := repositorio.sql.Query(query)
 
 	if erro != nil {
 		return nil, erro
@@ -31,8 +50,11 @@ func (repositorio DespesaRepositorio) GetDespesas(despesaFiltro models.Despesa) 
 			&despesa.Titulo,
 			&despesa.Valor,
 			&despesa.Quitada,
+			&despesa.Fixa,
+			&despesa.DiaVencimento,
 			&despesa.DataCadastro,
 			&despesa.Envelope.Id,
+			&despesa.Envelope.Titulo,
 		); erro != nil {
 			return nil, erro
 		}
@@ -44,14 +66,25 @@ func (repositorio DespesaRepositorio) GetDespesas(despesaFiltro models.Despesa) 
 
 // Insert insere um novo registro de despesa
 func (repositorio DespesaRepositorio) Insert(despesa models.Despesa) (uint, error) {
-	statement, erro := repositorio.sql.Prepare("Insert into despesas(titulo,valor,quitada,fixa,envelope_id) values(?,?,?,?,?)")
+
+	insertQuery := insert
+	if uint(despesa.Recorrencia.Id) == 0 {
+		insertQuery = insertWithoutRecorrencia
+	}
+
+	statement, erro := repositorio.sql.Prepare(insertQuery)
 
 	if erro != nil {
 		return 0, erro
 	}
 	defer statement.Close()
 
-	result, erro := statement.Exec(despesa.Titulo, despesa.Valor, despesa.Quitada, despesa.Fixa, despesa.Envelope.Id)
+	var result sql.Result
+	if uint(despesa.Recorrencia.Id) == 0 {
+		result, erro = statement.Exec(despesa.Titulo, despesa.Valor, despesa.Quitada, despesa.Fixa, despesa.Envelope.Id)
+	} else {
+		result, erro = statement.Exec(despesa.Titulo, despesa.Valor, despesa.Quitada, despesa.Fixa, despesa.Envelope.Id, despesa.Recorrencia.Id)
+	}
 
 	if erro != nil {
 		return 0, erro
@@ -67,7 +100,7 @@ func (repositorio DespesaRepositorio) Insert(despesa models.Despesa) (uint, erro
 }
 
 func (repositorio DespesaRepositorio) Update(despesa models.Despesa) error {
-	statement, erro := repositorio.sql.Prepare("update despesas set valor=?, quitada=?, fixa=?, envelope_id=? where id=?")
+	statement, erro := repositorio.sql.Prepare(update)
 
 	if erro != nil {
 		return erro
@@ -83,18 +116,8 @@ func (repositorio DespesaRepositorio) Update(despesa models.Despesa) error {
 }
 
 func (repositorio DespesaRepositorio) GetById(despesaId uint) (models.Despesa, error) {
-	linha, erro := repositorio.sql.Query(`Select 
-												d.id,
-												d.titulo,
-												d.valor,
-												d.quitada,
-												d.fixa,
-												d.data_cadastro, 
-												en.id
-												from despesas d
-												inner join envelope en on en.id = d.envelope_id
-												where d.id = ?
-												`, despesaId)
+	linha, erro := repositorio.sql.Query(query+" where des.id = ?", despesaId)
+
 	if erro != nil {
 		return models.Despesa{}, erro
 	}
@@ -108,8 +131,10 @@ func (repositorio DespesaRepositorio) GetById(despesaId uint) (models.Despesa, e
 			&despesa.Valor,
 			&despesa.Quitada,
 			&despesa.Fixa,
+			&despesa.DiaVencimento,
 			&despesa.DataCadastro,
 			&despesa.Envelope.Id,
+			&despesa.Envelope.Titulo,
 		); erro != nil {
 			return models.Despesa{}, erro
 		}
@@ -118,7 +143,7 @@ func (repositorio DespesaRepositorio) GetById(despesaId uint) (models.Despesa, e
 }
 
 func (repositorio DespesaRepositorio) DeletaDespesa(despesaID uint) error {
-	statement, erro := repositorio.sql.Prepare("delete from despesas where id = ?")
+	statement, erro := repositorio.sql.Prepare(delete)
 	if erro != nil {
 		return erro
 	}

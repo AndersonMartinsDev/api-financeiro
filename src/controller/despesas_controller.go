@@ -14,17 +14,7 @@ import (
 
 // GetDespesasGerais busca todas as despesas gerais contendo o mes e o ano
 func GetDespesas(w http.ResponseWriter, r *http.Request) {
-	body, _ := ioutil.ReadAll(r.Body)
-
-	var despesaFiltro models.Despesa
-	if body != nil {
-		if erro := json.Unmarshal(body, &despesaFiltro); erro != nil {
-			respostas.Erro(w, http.StatusInternalServerError, erro)
-			return
-		}
-	}
-
-	despesas, erro := services.GetDespesas(despesaFiltro)
+	despesas, erro := services.GetDespesas()
 	if erro != nil {
 		respostas.Erro(w, http.StatusInternalServerError, erro)
 		return

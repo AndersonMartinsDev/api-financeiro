@@ -14,14 +14,14 @@ func NewInstanceRecorrencia(bd *sql.DB) *RecorrenciaRepositorio {
 }
 
 func (repositorio RecorrenciaRepositorio) Insert(recorrencia models.Recorrencia) (uint, error) {
-	statement, erro := repositorio.sql.Prepare("Insert into recorrencia(meses,dia_vencimento) values(?,?)")
+	statement, erro := repositorio.sql.Prepare("Insert into recorrencia(meses) values(?)")
 
 	if erro != nil {
 		return 0, nil
 	}
 	defer statement.Close()
 
-	result, erro := statement.Exec(recorrencia.Meses, recorrencia.DiaVencimento)
+	result, erro := statement.Exec(recorrencia.Meses)
 
 	if erro != nil {
 		return 0, erro
@@ -30,6 +30,25 @@ func (repositorio RecorrenciaRepositorio) Insert(recorrencia models.Recorrencia)
 	recorrenciaId, _ := result.LastInsertId()
 
 	return uint(recorrenciaId), nil
+}
+
+func (repositorio RecorrenciaRepositorio) GetByDespesaId(despesaId uint) (models.Recorrencia, error) {
+	linha, erro := repositorio.sql.Query("select re.id,re.meses from despesas des inner join recorrencia re on re.id = des.recorrencia_id where des.id =?", despesaId)
+	if erro != nil {
+		return models.Recorrencia{}, erro
+	}
+	defer linha.Close()
+
+	var recorrencia models.Recorrencia
+	if linha.Next() {
+		if erro := linha.Scan(
+			&recorrencia.Id,
+			&recorrencia.Meses,
+		); erro != nil {
+			return models.Recorrencia{}, erro
+		}
+	}
+	return recorrencia, nil
 }
 
 func (repositorio RecorrenciaRepositorio) DeletaRecorrencia(recorrenciaId uint) error {
