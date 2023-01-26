@@ -13,6 +13,23 @@ func NewInstanceRecorrencia(bd *sql.DB) *RecorrenciaRepositorio {
 	return &RecorrenciaRepositorio{bd}
 }
 
+func (repositorio RecorrenciaRepositorio) Update(recorrencia models.Recorrencia) error {
+	statement, erro := repositorio.sql.Prepare("update from recorrencia set meses=? where id=?")
+	if erro != nil {
+		return erro
+	}
+	defer statement.Close()
+
+	_, erro = statement.Exec(recorrencia.Meses, recorrencia.Id)
+
+	if erro != nil {
+		return erro
+	}
+
+	return nil
+
+}
+
 func (repositorio RecorrenciaRepositorio) Insert(recorrencia models.Recorrencia) (uint, error) {
 	statement, erro := repositorio.sql.Prepare("Insert into recorrencia(meses) values(?)")
 

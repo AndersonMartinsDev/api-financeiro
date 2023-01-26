@@ -48,6 +48,29 @@ func NovaDespesa(w http.ResponseWriter, r *http.Request) {
 	respostas.JSON(w, http.StatusOK, id)
 }
 
+// AtualizaQuitacaoDespesa seta como quitada ou não uma despesa
+func AtualizaQuitacaoDespesa(w http.ResponseWriter, r *http.Request) {
+	parametros := mux.Vars(r)
+
+	quitada, erro := strconv.ParseBool(parametros["quitada"])
+	despesaId, erro := strconv.ParseUint(parametros["despesaId"], 10, 64)
+
+	if erro != nil {
+		respostas.Erro(w, http.StatusUnprocessableEntity, erro)
+		return
+	}
+
+	erro = services.AtualizaStatusQuitacaoDespesa(uint(despesaId), quitada)
+
+	if erro != nil {
+		respostas.Erro(w, http.StatusInternalServerError, erro)
+		return
+	}
+
+	respostas.JSON(w, http.StatusOK, "Mudança no status quitada!")
+
+}
+
 // AtualizaDespesa atualiza o registro da despesa
 func AtualizaDespesa(w http.ResponseWriter, r *http.Request) {
 	body, erro := ioutil.ReadAll(r.Body)
@@ -71,24 +94,19 @@ func AtualizaDespesa(w http.ResponseWriter, r *http.Request) {
 	respostas.JSON(w, http.StatusOK, "Atualizado com sucesso!")
 }
 
-// GetDespesaPorId devolve uma despesa
-func GetDespesaPorId(w http.ResponseWriter, r *http.Request) {
+// GetDespesaPorNome devolve uma despesa
+func GetDespesaPorNome(w http.ResponseWriter, r *http.Request) {
 	parametro := mux.Vars(r)
 
-	despesaId, erro := strconv.ParseUint(parametro["id"], 10, 64)
+	nome := parametro["despesaTitulo"]
 
-	if erro != nil {
-		respostas.Erro(w, http.StatusUnprocessableEntity, erro)
-		return
-	}
-
-	despesa, erro := services.GetDespesaPorId(uint(despesaId))
+	despesas, erro := services.GetDespesaPorNome(nome)
 	if erro != nil {
 		respostas.Erro(w, http.StatusInternalServerError, erro)
 		return
 	}
 
-	respostas.JSON(w, http.StatusOK, despesa)
+	respostas.JSON(w, http.StatusOK, despesas)
 }
 
 // DeletaDespesa remove o registro da despesa da base

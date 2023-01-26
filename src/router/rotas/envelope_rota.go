@@ -13,15 +13,9 @@ var envelopeRotas = []Rota{
 		Autenticacao: true,
 	},
 	{
-		URI:          "/envelopes/{nome}/nomes",
+		URI:          "/envelopes/{nome}",
 		Metodo:       http.MethodGet,
 		Func:         controller.BuscarEnvelopePorNome,
-		Autenticacao: true,
-	},
-	{
-		URI:          "/envelopes/{envelopeId}",
-		Metodo:       http.MethodGet,
-		Func:         controller.BuscaEnvelopePorId,
 		Autenticacao: true,
 	},
 	{

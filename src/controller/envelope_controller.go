@@ -49,13 +49,13 @@ func BuscarEnvelopes(w http.ResponseWriter, r *http.Request) {
 // BuscarEnvelopePorNome busca o servico para inserir o dado no banco
 func BuscarEnvelopePorNome(w http.ResponseWriter, r *http.Request) {
 	parametro := mux.Vars(r)
-	nome := parametro["envelopeId"]
-	envelope, erro := services.BuscarEnvelopePorNome(nome)
+	nome := parametro["nome"]
+	envelopes, erro := services.BuscarEnvelopePorNome(nome)
 	if erro != nil {
 		respostas.Erro(w, http.StatusInternalServerError, erro)
 		return
 	}
-	respostas.JSON(w, http.StatusOK, envelope)
+	respostas.JSON(w, http.StatusOK, envelopes)
 }
 
 // BuscaEnvelopePorId busca o servico para inserir o dado no banco

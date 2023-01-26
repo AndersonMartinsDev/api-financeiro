@@ -33,19 +33,27 @@ func (repository EnvelopeRepositorio) GetEnvelopes() ([]models.Envelope, error) 
 	return envelopes, erro
 }
 
-func (repository EnvelopeRepositorio) GetEnvelopePorNome(nome string) (models.Envelope, error) {
-	linha, erro := repository.sql.Query("Select id,titulo, valor,observacao from envelope where titulo=?", "'"+nome+"'")
+func (repository EnvelopeRepositorio) GetEnvelopePorNome(nome string) ([]models.Envelope, error) {
+	linhas, erro := repository.sql.Query("Select id, titulo, valor, observacao from envelope where titulo LIKE ?", "%"+nome+"%")
 	if erro != nil {
-		return models.Envelope{}, erro
+		return nil, erro
 	}
-	defer linha.Close()
+	defer linhas.Close()
 
-	var envelope models.Envelope
-	if linha.Next() {
-		erro = _inserirValorAModel(linha, &envelope)
+	var envelopes []models.Envelope
+	for linhas.Next() {
+		var envelope models.Envelope
+		if erro := linhas.Scan(
+			&envelope.Id,
+			&envelope.Titulo,
+			&envelope.Valor,
+			&envelope.Observacao,
+		); erro != nil {
+			return nil, erro
+		}
+		envelopes = append(envelopes, envelope)
 	}
-
-	return envelope, erro
+	return envelopes, nil
 }
 
 func (repository EnvelopeRepositorio) Insert(envelope models.Envelope) (uint, error) {

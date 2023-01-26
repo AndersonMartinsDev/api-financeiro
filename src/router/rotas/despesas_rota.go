@@ -19,15 +19,21 @@ var despesasRotas = []Rota{
 		Autenticacao: true,
 	},
 	{
-		URI:          "/despesas/{id}",
+		URI:          "/despesas/{despesaTitulo}",
 		Metodo:       http.MethodGet,
-		Func:         controller.GetDespesaPorId,
+		Func:         controller.GetDespesaPorNome,
 		Autenticacao: true,
 	},
 	{
 		URI:          "/despesas",
 		Metodo:       http.MethodPut,
 		Func:         controller.AtualizaDespesa,
+		Autenticacao: true,
+	},
+	{
+		URI:          "/despesas/{despesaId}/{quitada}",
+		Metodo:       http.MethodPut,
+		Func:         controller.AtualizaQuitacaoDespesa,
 		Autenticacao: true,
 	},
 	{

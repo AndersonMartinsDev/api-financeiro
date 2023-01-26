@@ -24,27 +24,21 @@ func GetDespesas() ([]models.Despesa, error) {
 }
 
 // GetDespesaPorId busca despesa por id
-func GetDespesaPorId(despesaId uint) (models.Despesa, error) {
+func GetDespesaPorNome(nome string) ([]models.Despesa, error) {
 	db, erro := banco.Conectar()
 
 	if erro != nil {
-		return models.Despesa{}, erro
+		return nil, erro
 	}
 	defer db.Close()
 
 	repositorio := repository.NewInstanceDespesa(db)
-	despesa, erro := repositorio.GetById(despesaId)
+	despesas, erro := repositorio.GetDespesasByNome(nome)
 	if erro != nil {
-		return models.Despesa{}, erro
+		return nil, erro
 	}
 
-	recorrenciaRepositorio := repository.NewInstanceRecorrencia(db)
-	recorrencia, erro := recorrenciaRepositorio.GetByDespesaId(despesaId)
-	if erro == nil {
-		despesa.Recorrencia = recorrencia
-	}
-
-	return despesa, nil
+	return despesas, nil
 }
 
 // NovaDespesa cria uma nova despesa
@@ -65,9 +59,7 @@ func NovaDespesa(despesa models.Despesa) (uint, error) {
 		if erro != nil {
 			return 0, erro
 		}
-
 		despesa.Recorrencia.Id = int64(recorrenciaId)
-
 	}
 
 	repositorio := repository.NewInstanceDespesa(db)
@@ -79,6 +71,18 @@ func NovaDespesa(despesa models.Despesa) (uint, error) {
 	return id, nil
 }
 
+func AtualizaStatusQuitacaoDespesa(despesaId uint, quitada bool) error {
+	db, erro := banco.Conectar()
+
+	if erro != nil {
+		return erro
+	}
+	defer db.Close()
+
+	repositorio := repository.NewInstanceDespesa(db)
+	return repositorio.UpdateStatusQuitacao(despesaId, quitada)
+}
+
 // AtualizaDespesa atualiza os valores de despesa
 func AtualizaDespesa(despesa models.Despesa) error {
 	db, erro := banco.Conectar()
@@ -88,9 +92,19 @@ func AtualizaDespesa(despesa models.Despesa) error {
 	}
 	defer db.Close()
 
-	repositorio := repository.NewInstanceDespesa(db)
+	repositorio := repository.NewInstanceRecorrencia(db)
 
-	erro = repositorio.Update(despesa)
+	if despesa.Recorrencia.Id != 0 {
+		repositorio.Update(despesa.Recorrencia)
+	} else {
+		if despesa.Recorrencia.Meses > 0 {
+			recorrenciaId, _ := repositorio.Insert(despesa.Recorrencia)
+			despesa.Recorrencia.Id = int64(recorrenciaId)
+		}
+	}
+
+	repositorioDespesa := repository.NewInstanceDespesa(db)
+	erro = repositorioDespesa.Update(despesa)
 
 	if erro != nil {
 		return erro

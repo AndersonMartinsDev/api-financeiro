@@ -32,12 +32,12 @@ func BuscaEnvelopePorId(envelopeId uint) (models.Envelope, error) {
 
 }
 
-func BuscarEnvelopePorNome(nome string) (models.Envelope, error) {
+func BuscarEnvelopePorNome(nome string) ([]models.Envelope, error) {
 
 	bd, erro := banco.Conectar()
 
 	if erro != nil {
-		return models.Envelope{}, erro
+		return nil, erro
 	}
 	defer bd.Close()
 

@@ -15,7 +15,7 @@ CREATE TABLE recorrencia(
     meses int not null,
     dia_vencimento int not null
 )ENGINE = INNODB;
-
+-- resolver problema do CASCADE
 CREATE TABLE despesas(
     id bigInt auto_increment primary key,
     titulo varchar(22) not null,
