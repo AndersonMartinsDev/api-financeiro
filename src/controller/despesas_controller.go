@@ -12,15 +12,47 @@ import (
 	"github.com/gorilla/mux"
 )
 
-// GetDespesasGerais busca todas as despesas gerais contendo o mes e o ano
-func GetDespesas(w http.ResponseWriter, r *http.Request) {
-	despesas, erro := services.GetDespesas()
+func AtualizaEnvelopeDespesa(w http.ResponseWriter, r *http.Request) {
+	parametros := mux.Vars(r)
+
+	envelopeId, _ := strconv.ParseUint(parametros["envelopeId"], 10, 64)
+	despesaId, erro := strconv.ParseUint(parametros["id"], 10, 64)
+
 	if erro != nil {
 		respostas.Erro(w, http.StatusInternalServerError, erro)
 		return
 	}
 
-	respostas.JSON(w, http.StatusOK, despesas)
+	erro = services.AtualizaEnvelope(uint(despesaId), uint(envelopeId))
+	if erro != nil {
+		respostas.Erro(w, http.StatusBadRequest, erro)
+		return
+	}
+
+	respostas.JSON(w, http.StatusOK, "Despesa recebeu novo envelope!")
+
+}
+
+// GetDespesasGerais busca todas as despesas gerais contendo o mes e o ano
+func GetDespesas(w http.ResponseWriter, r *http.Request) {
+	lista, erro := services.GetDespesas()
+	if erro != nil {
+		respostas.Erro(w, http.StatusInternalServerError, erro)
+		return
+	}
+
+	respostas.JSON(w, http.StatusOK, lista)
+}
+
+// GetTotalDespesas é soma de todas as despesas do mês
+func GetTotalDespesas(w http.ResponseWriter, r *http.Request) {
+	row, erro := services.GetTotalDespesaMes()
+	if erro != nil {
+		respostas.Erro(w, http.StatusInternalServerError, erro)
+		return
+	}
+
+	respostas.JSON(w, http.StatusOK, row)
 }
 
 // NovaDespesa endpoint responsável por receber uma nova despesa e cadastrar
@@ -32,14 +64,12 @@ func NovaDespesa(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var despesa models.Despesa
-	if erro := json.Unmarshal(body, &despesa); erro != nil {
+	var despesaPagamento models.DespesaPagamento
+	if erro := json.Unmarshal(body, &despesaPagamento); erro != nil {
 		respostas.Erro(w, http.StatusUnprocessableEntity, erro)
 		return
 	}
-
-	id, erro := services.NovaDespesa(despesa)
-
+	id, erro := services.NovaDespesa(despesaPagamento)
 	if erro != nil {
 		respostas.Erro(w, http.StatusInternalServerError, erro)
 		return
@@ -94,13 +124,18 @@ func AtualizaDespesa(w http.ResponseWriter, r *http.Request) {
 	respostas.JSON(w, http.StatusOK, "Atualizado com sucesso!")
 }
 
-// GetDespesaPorNome devolve uma despesa
-func GetDespesaPorNome(w http.ResponseWriter, r *http.Request) {
+// GetDespesasById devolve uma despesa
+func GetDespesasById(w http.ResponseWriter, r *http.Request) {
 	parametro := mux.Vars(r)
 
-	nome := parametro["despesaTitulo"]
+	despesaId, erro := strconv.ParseUint(parametro["id"], 10, 64)
 
-	despesas, erro := services.GetDespesaPorNome(nome)
+	if erro != nil {
+		respostas.Erro(w, http.StatusUnprocessableEntity, erro)
+		return
+	}
+
+	despesas, erro := services.GetDespesasById(uint(despesaId))
 	if erro != nil {
 		respostas.Erro(w, http.StatusInternalServerError, erro)
 		return

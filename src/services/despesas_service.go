@@ -7,7 +7,7 @@ import (
 )
 
 // GetDespesas busca todas as despesas do banco
-func GetDespesas() ([]models.Despesa, error) {
+func GetDespesas() ([]models.VDespesa, error) {
 	db, erro := banco.Conectar()
 	if erro != nil {
 		return nil, erro
@@ -24,25 +24,25 @@ func GetDespesas() ([]models.Despesa, error) {
 }
 
 // GetDespesaPorId busca despesa por id
-func GetDespesaPorNome(nome string) ([]models.Despesa, error) {
+func GetDespesasById(despesaId uint) (models.Despesa, error) {
 	db, erro := banco.Conectar()
 
 	if erro != nil {
-		return nil, erro
+		return models.Despesa{}, erro
 	}
 	defer db.Close()
 
 	repositorio := repository.NewInstanceDespesa(db)
-	despesas, erro := repositorio.GetDespesasByNome(nome)
+	despesa, erro := repositorio.GetDespesasById(despesaId)
 	if erro != nil {
-		return nil, erro
+		return models.Despesa{}, erro
 	}
 
-	return despesas, nil
+	return despesa, nil
 }
 
 // NovaDespesa cria uma nova despesa
-func NovaDespesa(despesa models.Despesa) (uint, error) {
+func NovaDespesa(despesa models.DespesaPagamento) (uint, error) {
 	db, erro := banco.Conectar()
 
 	if erro != nil {
@@ -50,20 +50,17 @@ func NovaDespesa(despesa models.Despesa) (uint, error) {
 	}
 	defer db.Close()
 
-	var recorrencia models.Recorrencia
-
-	if despesa.Recorrencia != recorrencia {
-		recorrenciaRepositorio := repository.NewInstanceRecorrencia(db)
-		recorrenciaId, erro := recorrenciaRepositorio.Insert(despesa.Recorrencia)
-
-		if erro != nil {
-			return 0, erro
-		}
-		despesa.Recorrencia.Id = int64(recorrenciaId)
-	}
-
 	repositorio := repository.NewInstanceDespesa(db)
-	id, erro := repositorio.Insert(despesa)
+	id, erro := repositorio.Insert(despesa.Despesa)
+
+	go func() {
+		if despesa.Despesa.Tipo == models.PARCELADA {
+			for _, v := range despesa.Pagamentos {
+				v.DespesaId = id
+				InserirPagamento(v)
+			}
+		}
+	}()
 
 	if erro != nil {
 		return 0, erro
@@ -92,17 +89,6 @@ func AtualizaDespesa(despesa models.Despesa) error {
 	}
 	defer db.Close()
 
-	repositorio := repository.NewInstanceRecorrencia(db)
-
-	if despesa.Recorrencia.Id != 0 {
-		repositorio.Update(despesa.Recorrencia)
-	} else {
-		if despesa.Recorrencia.Meses > 0 {
-			recorrenciaId, _ := repositorio.Insert(despesa.Recorrencia)
-			despesa.Recorrencia.Id = int64(recorrenciaId)
-		}
-	}
-
 	repositorioDespesa := repository.NewInstanceDespesa(db)
 	erro = repositorioDespesa.Update(despesa)
 
@@ -110,6 +96,27 @@ func AtualizaDespesa(despesa models.Despesa) error {
 		return erro
 	}
 	return nil
+}
+
+func AtualizaEnvelope(despesaId, envelopeId uint) error {
+	db, erro := banco.Conectar()
+	if erro != nil {
+		return erro
+	}
+	defer db.Close()
+
+	repositorio := repository.NewInstanceDespesa(db)
+	return repositorio.AtualizaEnvelopeDespesa(despesaId, envelopeId)
+}
+
+func GetTotalDespesaMes() (float64, error) {
+	db, erro := banco.Conectar()
+	if erro != nil {
+		return 0, erro
+	}
+	defer db.Close()
+	repositorio := repository.NewInstanceDespesa(db)
+	return repositorio.GetTotalDespesaPorMes()
 }
 
 func DeletaDespesa(despesaId uint) error {
@@ -120,11 +127,5 @@ func DeletaDespesa(despesaId uint) error {
 	defer db.Close()
 
 	repositorio := repository.NewInstanceDespesa(db)
-
-	erro = repositorio.DeletaDespesa(despesaId)
-	if erro != nil {
-		return erro
-	}
-
-	return nil
+	return repositorio.DeletaDespesa(despesaId)
 }
