@@ -1,4 +1,4 @@
-package models
+package despesa
 
 type VDespesa struct {
 	ID        uint    `json:"id,omitempty"`

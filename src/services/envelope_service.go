@@ -1,13 +1,13 @@
 package services
 
 import (
-	"api/src/banco"
-	"api/src/models"
+	"api/src/models/envelope"
 	"api/src/repository"
+	"api/src/tools/banco"
 )
 
 // BuscarEnvelopes trás os envelopes do banco de dados
-func BuscarEnvelopes() ([]models.Envelope, error) {
+func BuscarEnvelopes() ([]envelope.Envelope, error) {
 	bd, erro := banco.Conectar()
 
 	if erro != nil {
@@ -19,11 +19,11 @@ func BuscarEnvelopes() ([]models.Envelope, error) {
 	return repositorio.GetEnvelopes()
 }
 
-func BuscaEnvelopePorId(envelopeId uint) (models.Envelope, error) {
+func BuscaEnvelopePorId(envelopeId uint) (envelope.Envelope, error) {
 	bd, erro := banco.Conectar()
 
 	if erro != nil {
-		return models.Envelope{}, erro
+		return envelope.Envelope{}, erro
 	}
 	defer bd.Close()
 
@@ -32,7 +32,7 @@ func BuscaEnvelopePorId(envelopeId uint) (models.Envelope, error) {
 
 }
 
-func BuscarEnvelopePorNome(nome string) ([]models.Envelope, error) {
+func BuscarEnvelopePorNome(nome string) ([]envelope.Envelope, error) {
 
 	bd, erro := banco.Conectar()
 
@@ -45,7 +45,7 @@ func BuscarEnvelopePorNome(nome string) ([]models.Envelope, error) {
 	return repositorio.GetEnvelopePorNome(nome)
 }
 
-func InserirNovoEnvelope(envelope models.Envelope) (uint, error) {
+func InserirNovoEnvelope(envelope envelope.Envelope) (uint, error) {
 	bd, erro := banco.Conectar()
 
 	if erro != nil {
@@ -69,7 +69,7 @@ func DeletarEnvelopePorID(envelopeId uint) error {
 	return repositorio.DeleteById(envelopeId)
 }
 
-func AtualizarEnvelope(envelope models.Envelope) error {
+func AtualizarEnvelope(envelope envelope.Envelope) error {
 	db, erro := banco.Conectar()
 
 	if erro != nil {

@@ -1,4 +1,4 @@
-package models
+package despesa
 
 const (
 	FIXA      string = "FIXA"

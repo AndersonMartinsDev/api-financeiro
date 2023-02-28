@@ -1,12 +1,12 @@
 package services
 
 import (
-	"api/src/banco"
-	"api/src/models"
+	"api/src/models/despesa"
 	"api/src/repository"
+	"api/src/tools/banco"
 )
 
-func InserirPagamento(pagamentos models.Pagamento) error {
+func InserirPagamento(pagamentos despesa.Pagamento) error {
 	bd, erro := banco.Conectar()
 	if erro != nil {
 		return erro

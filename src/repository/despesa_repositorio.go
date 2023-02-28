@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"api/src/models"
+	"api/src/models/despesa"
 	"database/sql"
 )
 
@@ -19,7 +19,7 @@ type DespesaRepositorio struct {
 func NewInstanceDespesa(banco *sql.DB) *DespesaRepositorio {
 	return &DespesaRepositorio{banco}
 }
-func (repositorio DespesaRepositorio) GetDespesasById(despesaId uint) (models.Despesa, error) {
+func (repositorio DespesaRepositorio) GetDespesasById(despesaId uint) (despesa.Despesa, error) {
 	query := `SELECT 		
 				DISTINCT(des.id),
 				des.titulo,
@@ -36,33 +36,33 @@ func (repositorio DespesaRepositorio) GetDespesasById(despesaId uint) (models.De
 			`
 	linhas, erro := repositorio.sql.Query(query+" where des.id = ? ", despesaId)
 	if erro != nil {
-		return models.Despesa{}, erro
+		return despesa.Despesa{}, erro
 	}
 	defer linhas.Close()
 
-	var despesa models.Despesa
+	var entity despesa.Despesa
 
 	if linhas.Next() {
 		if erro := linhas.Scan(
-			&despesa.ID,
-			&despesa.Titulo,
-			&despesa.Valor,
-			&despesa.Quitada,
-			&despesa.Tipo,
-			&despesa.DiaVencimento,
-			&despesa.Envelope.Id,
-			&despesa.Envelope.Titulo,
-			&despesa.Envelope.Observacao,
+			&entity.ID,
+			&entity.Titulo,
+			&entity.Valor,
+			&entity.Quitada,
+			&entity.Tipo,
+			&entity.DiaVencimento,
+			&entity.Envelope.Id,
+			&entity.Envelope.Titulo,
+			&entity.Envelope.Observacao,
 		); erro != nil {
-			return models.Despesa{}, erro
+			return despesa.Despesa{}, erro
 		}
 	}
-	return despesa, nil
+	return entity, nil
 
 }
 
 // GetDespesas tras todas as despesas gerais baseada nas despesas cadastradas
-func (repositorio DespesaRepositorio) GetDespesas() ([]models.VDespesa, error) {
+func (repositorio DespesaRepositorio) GetDespesas() ([]despesa.VDespesa, error) {
 	//SE ALTERAR ESSA QUERY DEVE ALTERAR A DO BALANÇO TOTAL TAMBÉM
 	queryView := `SELECT 
 					id,
@@ -83,10 +83,10 @@ func (repositorio DespesaRepositorio) GetDespesas() ([]models.VDespesa, error) {
 	}
 	defer linhas.Close()
 
-	var despesas []models.VDespesa
+	var despesas []despesa.VDespesa
 
 	for linhas.Next() {
-		var despesa models.VDespesa
+		var despesa despesa.VDespesa
 		if erro := linhas.Scan(
 			&despesa.ID,
 			&despesa.Titulo,
@@ -104,7 +104,7 @@ func (repositorio DespesaRepositorio) GetDespesas() ([]models.VDespesa, error) {
 }
 
 // Insert insere um novo registro de despesa
-func (repositorio DespesaRepositorio) Insert(despesa models.Despesa) (uint, error) {
+func (repositorio DespesaRepositorio) Insert(despesa despesa.Despesa) (uint, error) {
 	insert := `Insert into despesas(titulo, valor, quitada, tipo, dia_vencimento, observacao, envelope_id) values(?,?,?,?,?,?,?)`
 	statement, erro := repositorio.sql.Prepare(insert)
 
@@ -134,7 +134,7 @@ func (repositorio DespesaRepositorio) Insert(despesa models.Despesa) (uint, erro
 	return uint(ID), nil
 }
 
-func (repositorio DespesaRepositorio) Update(despesa models.Despesa) error {
+func (repositorio DespesaRepositorio) Update(despesa despesa.Despesa) error {
 
 	statement, erro := repositorio.sql.Prepare(update)
 

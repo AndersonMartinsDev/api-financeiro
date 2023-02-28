@@ -1,4 +1,4 @@
-package models
+package despesa
 
 type DespesaPagamento struct {
 	Despesa    Despesa     `json:"despesa"`

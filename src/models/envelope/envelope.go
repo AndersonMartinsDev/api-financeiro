@@ -1,4 +1,4 @@
-package models
+package envelope
 
 type Envelope struct {
 	Id         uint    `json:"id,omitempty"`

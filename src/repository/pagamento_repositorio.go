@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"api/src/models"
+	"api/src/models/despesa"
 	"database/sql"
 )
 
@@ -13,7 +13,7 @@ func NewInstancePagamento(sql *sql.DB) *PagamentoRepositorio {
 	return &PagamentoRepositorio{sql}
 }
 
-func (repositorio *PagamentoRepositorio) Insert(pagamento models.Pagamento) error {
+func (repositorio *PagamentoRepositorio) Insert(pagamento despesa.Pagamento) error {
 
 	insert := `INSERT INTO pagamentos(valor,data_vencimento,despesa_id) values(?,?,?)`
 

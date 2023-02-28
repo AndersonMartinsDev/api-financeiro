@@ -1,7 +1,7 @@
 package autenticacao
 
 import (
-	"api/src/config"
+	"api/src/tools/config"
 	"errors"
 	"fmt"
 	"net/http"

@@ -1,13 +1,13 @@
 package services
 
 import (
-	"api/src/banco"
-	"api/src/models"
+	"api/src/models/despesa"
 	"api/src/repository"
+	"api/src/tools/banco"
 )
 
 // GetDespesas busca todas as despesas do banco
-func GetDespesas() ([]models.VDespesa, error) {
+func GetDespesas() ([]despesa.VDespesa, error) {
 	db, erro := banco.Conectar()
 	if erro != nil {
 		return nil, erro
@@ -24,25 +24,25 @@ func GetDespesas() ([]models.VDespesa, error) {
 }
 
 // GetDespesaPorId busca despesa por id
-func GetDespesasById(despesaId uint) (models.Despesa, error) {
+func GetDespesasById(despesaId uint) (despesa.Despesa, error) {
 	db, erro := banco.Conectar()
 
 	if erro != nil {
-		return models.Despesa{}, erro
+		return despesa.Despesa{}, erro
 	}
 	defer db.Close()
 
 	repositorio := repository.NewInstanceDespesa(db)
-	despesa, erro := repositorio.GetDespesasById(despesaId)
+	entity, erro := repositorio.GetDespesasById(despesaId)
 	if erro != nil {
-		return models.Despesa{}, erro
+		return despesa.Despesa{}, erro
 	}
 
-	return despesa, nil
+	return entity, nil
 }
 
 // NovaDespesa cria uma nova despesa
-func NovaDespesa(despesa models.DespesaPagamento) (uint, error) {
+func NovaDespesa(entity despesa.DespesaPagamento) (uint, error) {
 	db, erro := banco.Conectar()
 
 	if erro != nil {
@@ -51,11 +51,11 @@ func NovaDespesa(despesa models.DespesaPagamento) (uint, error) {
 	defer db.Close()
 
 	repositorio := repository.NewInstanceDespesa(db)
-	id, erro := repositorio.Insert(despesa.Despesa)
+	id, erro := repositorio.Insert(entity.Despesa)
 
 	go func() {
-		if despesa.Despesa.Tipo == models.PARCELADA {
-			for _, v := range despesa.Pagamentos {
+		if entity.Despesa.Tipo == despesa.PARCELADA {
+			for _, v := range entity.Pagamentos {
 				v.DespesaId = id
 				InserirPagamento(v)
 			}
@@ -81,7 +81,7 @@ func AtualizaStatusQuitacaoDespesa(despesaId uint, quitada bool) error {
 }
 
 // AtualizaDespesa atualiza os valores de despesa
-func AtualizaDespesa(despesa models.Despesa) error {
+func AtualizaDespesa(despesa despesa.Despesa) error {
 	db, erro := banco.Conectar()
 
 	if erro != nil {

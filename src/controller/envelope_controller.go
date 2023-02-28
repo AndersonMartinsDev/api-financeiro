@@ -1,9 +1,9 @@
 package controller
 
 import (
-	"api/src/models"
-	"api/src/respostas"
+	"api/src/models/envelope"
 	"api/src/services"
+	"api/src/tools/respostas"
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
@@ -21,13 +21,13 @@ func InsereNovoEnvelope(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var envelope models.Envelope
-	if erro := json.Unmarshal(body, &envelope); erro != nil {
+	var entity envelope.Envelope
+	if erro := json.Unmarshal(body, &entity); erro != nil {
 		respostas.Erro(w, http.StatusInternalServerError, erro)
 		return
 	}
 
-	response, erro := services.InserirNovoEnvelope(envelope)
+	response, erro := services.InserirNovoEnvelope(entity)
 
 	if erro != nil {
 		respostas.Erro(w, http.StatusInternalServerError, erro)
@@ -101,7 +101,7 @@ func AtualizaEnvelope(w http.ResponseWriter, r *http.Request) {
 		respostas.Erro(w, http.StatusUnprocessableEntity, erro)
 		return
 	}
-	var envelope models.Envelope
+	var envelope envelope.Envelope
 	if erro := json.Unmarshal(body, &envelope); erro != nil {
 		respostas.Erro(w, http.StatusUnprocessableEntity, erro)
 		return

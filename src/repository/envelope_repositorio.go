@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"api/src/models"
+	"api/src/models/envelope"
 	"database/sql"
 )
 
@@ -13,7 +13,7 @@ func NewInstanceEnvelope(sql *sql.DB) *EnvelopeRepositorio {
 	return &EnvelopeRepositorio{sql}
 }
 
-func (repository EnvelopeRepositorio) GetEnvelopes() ([]models.Envelope, error) {
+func (repository EnvelopeRepositorio) GetEnvelopes() ([]envelope.Envelope, error) {
 
 	linhas, erro := repository.sql.Query("Select id, titulo, valor,observacao from envelopes")
 
@@ -22,9 +22,9 @@ func (repository EnvelopeRepositorio) GetEnvelopes() ([]models.Envelope, error) 
 	}
 	defer linhas.Close()
 
-	var envelopes []models.Envelope
+	var envelopes []envelope.Envelope
 	for linhas.Next() {
-		var envelope models.Envelope
+		var envelope envelope.Envelope
 		erro = _inserirValorAModel(linhas, &envelope)
 		if erro == nil {
 			envelopes = append(envelopes, envelope)
@@ -33,16 +33,16 @@ func (repository EnvelopeRepositorio) GetEnvelopes() ([]models.Envelope, error) 
 	return envelopes, erro
 }
 
-func (repository EnvelopeRepositorio) GetEnvelopePorNome(nome string) ([]models.Envelope, error) {
+func (repository EnvelopeRepositorio) GetEnvelopePorNome(nome string) ([]envelope.Envelope, error) {
 	linhas, erro := repository.sql.Query("Select id, titulo, valor, observacao from envelopes where titulo LIKE ?", "%"+nome+"%")
 	if erro != nil {
 		return nil, erro
 	}
 	defer linhas.Close()
 
-	var envelopes []models.Envelope
+	var envelopes []envelope.Envelope
 	for linhas.Next() {
-		var envelope models.Envelope
+		var envelope envelope.Envelope
 		if erro := linhas.Scan(
 			&envelope.Id,
 			&envelope.Titulo,
@@ -56,7 +56,7 @@ func (repository EnvelopeRepositorio) GetEnvelopePorNome(nome string) ([]models.
 	return envelopes, nil
 }
 
-func (repository EnvelopeRepositorio) Insert(envelope models.Envelope) (uint, error) {
+func (repository EnvelopeRepositorio) Insert(envelope envelope.Envelope) (uint, error) {
 	statement, erro := repository.sql.Prepare("Insert into envelopes(titulo,valor,observacao) values(?,?,?)")
 	if erro != nil {
 		return 0, erro
@@ -73,26 +73,26 @@ func (repository EnvelopeRepositorio) Insert(envelope models.Envelope) (uint, er
 	return uint(envelopeId), nil
 }
 
-func (repository EnvelopeRepositorio) GetEnvelopePorId(envelopeId uint) (models.Envelope, error) {
+func (repository EnvelopeRepositorio) GetEnvelopePorId(envelopeId uint) (envelope.Envelope, error) {
 	linha, erro := repository.sql.Query("select id, titulo, valor, observacao from envelopes where id = ?", envelopeId)
 	if erro != nil {
-		return models.Envelope{}, erro
+		return envelope.Envelope{}, erro
 	}
 	defer linha.Close()
 
-	var envelope models.Envelope
+	var entity envelope.Envelope
 	if linha.Next() {
 		if erro = linha.Scan(
-			&envelope.Id,
-			&envelope.Titulo,
-			&envelope.Valor,
-			&envelope.Observacao,
+			&entity.Id,
+			&entity.Titulo,
+			&entity.Valor,
+			&entity.Observacao,
 		); erro != nil {
-			return models.Envelope{}, erro
+			return envelope.Envelope{}, erro
 		}
 	}
 
-	return envelope, nil
+	return entity, nil
 }
 
 func (repository EnvelopeRepositorio) DeleteById(envelopeId uint) error {
@@ -108,7 +108,7 @@ func (repository EnvelopeRepositorio) DeleteById(envelopeId uint) error {
 	return erro
 }
 
-func (repository EnvelopeRepositorio) AtualizarEnvelope(envelope models.Envelope) error {
+func (repository EnvelopeRepositorio) AtualizarEnvelope(envelope envelope.Envelope) error {
 	statement, erro := repository.sql.Prepare("update envelopes set titulo = ?,valor = ? , observacao =? where id =?")
 	if erro != nil {
 		return erro
@@ -119,7 +119,7 @@ func (repository EnvelopeRepositorio) AtualizarEnvelope(envelope models.Envelope
 	return erro
 }
 
-func _inserirValorAModel(linha *sql.Rows, envelope *models.Envelope) error {
+func _inserirValorAModel(linha *sql.Rows, envelope *envelope.Envelope) error {
 	if erro := linha.Scan(
 		&envelope.Id,
 		&envelope.Titulo,

@@ -1,9 +1,9 @@
 package controller
 
 import (
-	"api/src/models"
-	"api/src/respostas"
+	"api/src/models/despesa"
 	"api/src/services"
+	"api/src/tools/respostas"
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
@@ -64,7 +64,7 @@ func NovaDespesa(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var despesaPagamento models.DespesaPagamento
+	var despesaPagamento despesa.DespesaPagamento
 	if erro := json.Unmarshal(body, &despesaPagamento); erro != nil {
 		respostas.Erro(w, http.StatusUnprocessableEntity, erro)
 		return
@@ -110,7 +110,7 @@ func AtualizaDespesa(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var despesa models.Despesa
+	var despesa despesa.Despesa
 	if erro := json.Unmarshal(body, &despesa); erro != nil {
 		respostas.Erro(w, http.StatusInternalServerError, erro)
 		return
