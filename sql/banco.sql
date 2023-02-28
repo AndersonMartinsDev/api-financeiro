@@ -25,20 +25,57 @@ CREATE TABLE despesas(
      REFERENCES envelopes(id)
 )ENGINE = INNODB;
 
+CREATE TABLE usuario(
+    id bigInt auto_increment primary key,
+    avatar BLOB, 
+    nome varchar(200) not null,
+    username varchar(200) not null,
+    senha varchar(100) not null,
+    email varchar(200)
+)ENGINE = INNODB;
+
 CREATE TABLE pagamentos(
     id bigInt auto_increment primary key,
     valor double not null,
-    data_pagamento timestamp ,
+    data_pagamento timestamp,
     data_vencimento timestamp,
     forma_pagamento varchar(20),
-    -- usuario_id bigInt not null, 
-    -- FOREIGN KEY(usuario_id)
-    -- REFERENCES usuario(id)
-    -- ON NO ACTION
-    despesa_id bigInt not NULL,
+    usuario_id bigInt not null ,
+    FOREIGN KEY(usuario_id)
+    REFERENCES usuario(id),
+    despesa_id bigInt not null,
     FOREIGN KEY (despesa_id)
     REFERENCES despesas(id)
 )ENGINE = INNODB;
+
+
+CREATE TABLE carteira(
+    hashid varchar(100) primary key,
+    titulo varchar(50) not null
+)ENGINE = INNODB;
+
+CREATE TABLE associacao_carteira_usuario(
+    usuario_id bigInt not null,
+    FOREIGN KEY (usuario_id)
+    REFERENCES usuario(id)
+	ON DELETE CASCADE,
+    carteira_id VARCHAR(100) not null,
+    FOREIGN KEY (carteira_id)
+    REFERENCES carteira(hashid)
+	ON DELETE CASCADE
+)ENGINE = INNODB;
+
+CREATE TABLE associacao_carteira_despesa(
+    carteira_id VARCHAR(100) not null,
+    FOREIGN KEY (carteira_id)
+    REFERENCES carteira(hashid)
+    ON DELETE CASCADE,
+    despesa_id bigInt not null, 
+    FOREIGN KEY (despesa_id)
+    REFERENCES despesas(id)
+    ON DELETE CASCADE
+)ENGINE = INNODB;
+
 
 CREATE VIEW v_despesa AS 
 SELECT 

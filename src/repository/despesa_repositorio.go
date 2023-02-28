@@ -191,7 +191,9 @@ func (repositorio DespesaRepositorio) GetTotalDespesaPorMes() (float64, error) {
 	}
 	return totalValor, erro
 }
+
 func (repositorio DespesaRepositorio) DeletaDespesa(despesaID uint) error {
+
 	statement, erro := repositorio.sql.Prepare(delete)
 	if erro != nil {
 		return erro
@@ -199,6 +201,7 @@ func (repositorio DespesaRepositorio) DeletaDespesa(despesaID uint) error {
 	defer statement.Close()
 
 	_, erro = statement.Exec(despesaID)
+
 	return erro
 }
 
