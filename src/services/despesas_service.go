@@ -54,11 +54,14 @@ func NovaDespesa(entity despesa.DespesaPagamento) (uint, error) {
 	id, erro := repositorio.Insert(entity.Despesa)
 
 	go func() {
+		NovaAssociacaoCarteiraDespesa(id, []byte("")) //TODO: REVER PARA RETORNAR VALOR DE CARTEIRA DO USUARIO DE PREFERENCIA BUSCAR DO TOKEN DA REQUISIÇÃO
+
 		if entity.Despesa.Tipo == despesa.PARCELADA {
 			for _, v := range entity.Pagamentos {
 				v.DespesaId = id
 				InserirPagamento(v)
 			}
+
 		}
 	}()
 

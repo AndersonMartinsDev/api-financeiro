@@ -50,8 +50,7 @@ CREATE TABLE pagamentos(
 
 
 CREATE TABLE carteira(
-    hashid varchar(100) primary key,
-    titulo varchar(50) not null
+    hashid varchar(100) primary key not null,
 )ENGINE = INNODB;
 
 CREATE TABLE associacao_carteira_usuario(
@@ -82,6 +81,8 @@ SELECT
 DISTINCT(des.id),
 des.titulo AS titulo,
 des.tipo AS tipo,
+des.data_cadastro,
+pgto.data_vencimento,
 FORMAT(des.valor,2) AS valor,
 IF(des.tipo='UNICA','Essa conta não possui frequência',CONCAT('Vence dia ',IF(des.tipo <> 'PARCELADA', des.dia_vencimento,DAY(pgto.data_vencimento)))) AS condicao,
 IF(des.tipo <> 'PARCELADA','à vista',CONCAT((SELECT COUNT(pg.id) FROM pagamentos pg WHERE pg.despesa_id = des.id AND pg.data_pagamento IS NOT NULL),'/' ,(SELECT COUNT(pg.id) FROM pagamentos pg WHERE pg.despesa_id = des.id))) AS pagamento,

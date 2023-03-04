@@ -15,7 +15,14 @@ func InserirUsuario(usuario usuario.Usuario) error {
 	defer db.Close()
 
 	repositorio := repository.NewInstanceUsuario(db)
-	return repositorio.NovoUsuario(usuario)
+	usuarioID, erro := repositorio.NovoUsuario(usuario)
+
+	if erro != nil {
+		return erro
+	}
+
+	NovaAssociacaoCarteiraUsuario(usuarioID)
+	return erro
 }
 
 // UsuarioPorId busca todos os atributos de usuario exceto a senha

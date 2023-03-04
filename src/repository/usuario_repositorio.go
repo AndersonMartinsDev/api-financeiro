@@ -14,16 +14,26 @@ func NewInstanceUsuario(sql *sql.DB) *UsuarioRepositorio {
 }
 
 // NovoUsuario criação de novo usuario
-func (repositorio UsuarioRepositorio) NovoUsuario(usuario usuario.Usuario) error {
+func (repositorio UsuarioRepositorio) NovoUsuario(usuario usuario.Usuario) (uint, error) {
 	insert := `Insert Into usuario(avatar,nome,username,senha,email) values(?,?,?,?,?)`
 	statement, erro := repositorio.sql.Prepare(insert)
 
 	if erro != nil {
-		return nil
+		return 0, nil
 	}
 
-	_, erro = statement.Exec(usuario.Avatar, usuario.Nome, usuario.Username, usuario.Senha, usuario.Email)
-	return erro
+	resultado, erro := statement.Exec(usuario.Avatar, usuario.Nome, usuario.Username, usuario.Senha, usuario.Email)
+
+	if erro != nil {
+		return 0, nil
+	}
+
+	usuarioId, erro := resultado.LastInsertId()
+
+	if erro != nil {
+		return 0, nil
+	}
+	return uint(usuarioId), nil
 }
 
 func (repositorio UsuarioRepositorio) UsuarioPorID(usuarioId uint) (usuario.Usuario, error) {

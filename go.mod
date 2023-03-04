@@ -11,5 +11,6 @@ require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/go-sql-driver/mysql v1.7.0
 	github.com/joho/godotenv v1.4.0
-	golang.org/x/sys v0.0.0-20220715151400-c0bba94af5f8 // indirect
+	golang.org/x/crypto v0.6.0
+	golang.org/x/sys v0.5.0 // indirect
 )
