@@ -1,9 +1,9 @@
 package controller
 
 import (
+	"api/src/commons/respostas"
 	"api/src/models/usuario"
 	"api/src/services"
-	"api/src/tools/respostas"
 	"encoding/json"
 	"io/ioutil"
 	"net/http"

@@ -1,9 +1,10 @@
 package services
 
 import (
+	"api/src/commons/banco"
+	"api/src/models/associacao"
 	"api/src/models/usuario"
 	"api/src/repository"
-	"api/src/tools/banco"
 )
 
 // InserirUsuario insere novo usuario
@@ -14,6 +15,10 @@ func InserirUsuario(usuario usuario.Usuario) error {
 	}
 	defer db.Close()
 
+	if erro := usuario.Check(); erro != nil {
+		return erro
+	}
+
 	repositorio := repository.NewInstanceUsuario(db)
 	usuarioID, erro := repositorio.NovoUsuario(usuario)
 
@@ -21,7 +26,12 @@ func InserirUsuario(usuario usuario.Usuario) error {
 		return erro
 	}
 
-	NovaAssociacaoCarteiraUsuario(usuarioID)
+	if erro := NovaAssociacaoCarteiraUsuario(associacao.AssociacaoCarteiraUsuario{
+		CarteiraId: usuario.Username + usuario.Email,
+		UsuarioId:  usuarioID}); erro != nil {
+		return erro
+	}
+
 	return erro
 }
 
@@ -35,6 +45,18 @@ func UsuarioPorId(usuarioId uint) (usuario.Usuario, error) {
 
 	repositorio := repository.NewInstanceUsuario(db)
 	return repositorio.UsuarioPorID(usuarioId)
+}
+
+// UsuarioLoginPorUsername busca todos os atributos de usuario exceto a senha
+func UsuarioLoginPorUsername(username string) (usuario.UsuarioLoginDto, error) {
+	db, erro := banco.Conectar()
+	if erro != nil {
+		return usuario.UsuarioLoginDto{}, erro
+	}
+	defer db.Close()
+
+	repositorio := repository.NewInstanceUsuario(db)
+	return repositorio.UsuarioLoginPorUsername(username)
 }
 
 // UsuarioDTOid busca uma versão enxuta de usuario

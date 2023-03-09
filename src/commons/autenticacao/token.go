@@ -1,15 +1,26 @@
 package autenticacao
 
 import (
-	"api/src/tools/config"
-	"errors"
+	"api/src/commons/config"
+	"api/src/models/usuario"
 	"fmt"
 	"net/http"
-	"strconv"
 	"strings"
+	"time"
 
 	jwt "github.com/dgrijalva/jwt-go"
 )
+
+// CriarToken token com as permissões de usuário
+func CriarToken(usuario usuario.UsuarioLoginDto) (string, error) {
+	permissoes := jwt.MapClaims{}
+	permissoes["authorized"] = true
+	permissoes["exp"] = time.Now().Add(time.Hour * 6).Unix()
+	permissoes["username"] = usuario.Username
+	permissoes["carteiraId"] = usuario.CarteiraId
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, permissoes)
+	return token.Signature, nil //secret
+}
 
 // ValidarToken verifica se o token na requisição é valido
 func ValidarToken(r *http.Request) error {
@@ -24,7 +35,7 @@ func ValidarToken(r *http.Request) error {
 		return nil
 	}
 
-	return errors.New("Token Inválido")
+	return fmt.Errorf("token inválido")
 }
 
 func extrairToken(r *http.Request) string {
@@ -38,27 +49,27 @@ func extrairToken(r *http.Request) string {
 
 func retornarChaveDeVerificacao(token *jwt.Token) (interface{}, error) {
 	if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-		return nil, fmt.Errorf("Método de assinatura inesperado! %v", token.Header["alg"])
+		return nil, fmt.Errorf("método de assinatura inesperado! %v", token.Header["alg"])
 	}
 	return config.SecretKey, nil
 }
 
 // ExtrairUsuarioID
-func ExtrairUsuarioID(r *http.Request) (uint64, error) {
+func ExtrairCarteiraId(r *http.Request) (string, error) {
 	tokenString := extrairToken(r)
 	token, erro := jwt.Parse(tokenString, retornarChaveDeVerificacao)
 
 	if erro != nil {
-		return 0, erro
+		return "", erro
 	}
 
 	if permissoes, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-		usuarioID, erro := strconv.ParseUint(fmt.Sprintf("%.0f", permissoes["usuarioId"]), 10, 64)
+		carteira := fmt.Sprintf("%s", permissoes["carteira"])
 		if erro != nil {
-			return 0, erro
+			return "", erro
 		}
 
-		return usuarioID, nil
+		return carteira, nil
 	}
-	return 0, errors.New("Token inválido")
+	return "", nil
 }

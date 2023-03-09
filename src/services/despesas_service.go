@@ -1,13 +1,13 @@
 package services
 
 import (
+	"api/src/commons/banco"
 	"api/src/models/despesa"
 	"api/src/repository"
-	"api/src/tools/banco"
 )
 
 // GetDespesas busca todas as despesas do banco
-func GetDespesas() ([]despesa.VDespesa, error) {
+func GetDespesas(carteira string) ([]despesa.VDespesa, error) {
 	db, erro := banco.Conectar()
 	if erro != nil {
 		return nil, erro
@@ -24,7 +24,7 @@ func GetDespesas() ([]despesa.VDespesa, error) {
 }
 
 // GetDespesaPorId busca despesa por id
-func GetDespesasById(despesaId uint) (despesa.Despesa, error) {
+func GetDespesasById(despesaId uint, carteira string) (despesa.Despesa, error) {
 	db, erro := banco.Conectar()
 
 	if erro != nil {
@@ -54,8 +54,6 @@ func NovaDespesa(entity despesa.DespesaPagamento) (uint, error) {
 	id, erro := repositorio.Insert(entity.Despesa)
 
 	go func() {
-		NovaAssociacaoCarteiraDespesa(id, []byte("")) //TODO: REVER PARA RETORNAR VALOR DE CARTEIRA DO USUARIO DE PREFERENCIA BUSCAR DO TOKEN DA REQUISIÇÃO
-
 		if entity.Despesa.Tipo == despesa.PARCELADA {
 			for _, v := range entity.Pagamentos {
 				v.DespesaId = id
@@ -112,7 +110,7 @@ func AtualizaEnvelope(despesaId, envelopeId uint) error {
 	return repositorio.AtualizaEnvelopeDespesa(despesaId, envelopeId)
 }
 
-func GetTotalDespesaMes() (float64, error) {
+func GetTotalDespesaMes(carteira string) (float64, error) {
 	db, erro := banco.Conectar()
 	if erro != nil {
 		return 0, erro
@@ -122,7 +120,7 @@ func GetTotalDespesaMes() (float64, error) {
 	return repositorio.GetTotalDespesaPorMes()
 }
 
-func DeletaDespesa(despesaId uint) error {
+func DeletaDespesa(despesaId uint, carteira string) error {
 	db, erro := banco.Conectar()
 	if erro != nil {
 		return erro

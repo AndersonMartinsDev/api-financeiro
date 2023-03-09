@@ -15,4 +15,5 @@ type Despesa struct {
 	DiaVencimento uint              `json:"diavencimento,omitempty"`
 	Observacao    string            `json:"observacao,omitempty"`
 	Envelope      envelope.Envelope `json:"envelope,omitempty"`
+	Carteira      string
 }

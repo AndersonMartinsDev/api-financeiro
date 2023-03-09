@@ -59,6 +59,26 @@ func (repositorio UsuarioRepositorio) UsuarioPorID(usuarioId uint) (usuario.Usua
 	return usuarioE, nil
 }
 
+func (repositorio UsuarioRepositorio) UsuarioLoginPorUsername(username string) (usuario.UsuarioLoginDto, error) {
+	query := `Select username,senha from usuario where username = ?`
+	row, erro := repositorio.sql.Query(query, username)
+
+	if erro != nil {
+		return usuario.UsuarioLoginDto{}, erro
+	}
+
+	var login usuario.UsuarioLoginDto
+	if row.Next() {
+		if erro := row.Scan(
+			&login.Username,
+			&login.Senha,
+		); erro != nil {
+			return usuario.UsuarioLoginDto{}, erro
+		}
+	}
+	return login, nil
+}
+
 func (repositorio UsuarioRepositorio) UsuarioDTOPorID(usuarioId uint) (usuario.UsuarioDTO, error) {
 	query := `Select id,avatar,nome,username,email from usuario where id = ?`
 	row, erro := repositorio.sql.Query(query, usuarioId)

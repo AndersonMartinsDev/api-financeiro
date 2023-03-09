@@ -57,13 +57,13 @@ func (repository EnvelopeRepositorio) GetEnvelopePorNome(nome string) ([]envelop
 }
 
 func (repository EnvelopeRepositorio) Insert(envelope envelope.Envelope) (uint, error) {
-	statement, erro := repository.sql.Prepare("Insert into envelopes(titulo,valor,observacao) values(?,?,?)")
+	statement, erro := repository.sql.Prepare("Insert into envelopes(titulo,valor,observacao,carteira) values(?,?,?,?)")
 	if erro != nil {
 		return 0, erro
 	}
 	defer statement.Close()
 
-	result, erro := statement.Exec(envelope.Titulo, envelope.Valor, envelope.Observacao)
+	result, erro := statement.Exec(envelope.Titulo, envelope.Valor, envelope.Observacao, envelope.Carteira)
 
 	if erro != nil {
 		return 0, erro

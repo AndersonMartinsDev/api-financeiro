@@ -1,6 +1,6 @@
 package associacao
 
 type AssociacaoCarteiraUsuario struct {
-	CarteiraId uint `json:"carteiraId"`
-	UsuarioId  uint `json:"usuarioId"`
+	CarteiraId string `json:"carteiraId"`
+	UsuarioId  uint   `json:"usuarioId"`
 }

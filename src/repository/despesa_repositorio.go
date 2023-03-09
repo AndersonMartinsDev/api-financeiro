@@ -105,7 +105,7 @@ func (repositorio DespesaRepositorio) GetDespesas() ([]despesa.VDespesa, error) 
 
 // Insert insere um novo registro de despesa
 func (repositorio DespesaRepositorio) Insert(despesa despesa.Despesa) (uint, error) {
-	insert := `Insert into despesas(titulo, valor, quitada, tipo, dia_vencimento, observacao, envelope_id) values(?,?,?,?,?,?,?)`
+	insert := `Insert into despesas(titulo, valor, quitada, tipo, dia_vencimento, observacao, envelope_id, carteira) values(?,?,?,?,?,?,?,?)`
 	statement, erro := repositorio.sql.Prepare(insert)
 
 	if erro != nil {
@@ -119,7 +119,7 @@ func (repositorio DespesaRepositorio) Insert(despesa despesa.Despesa) (uint, err
 		envelope = nil
 	}
 
-	result, erro := statement.Exec(despesa.Titulo, despesa.Valor, despesa.Quitada, despesa.Tipo, despesa.DiaVencimento, despesa.Observacao, envelope)
+	result, erro := statement.Exec(despesa.Titulo, despesa.Valor, despesa.Quitada, despesa.Tipo, despesa.DiaVencimento, despesa.Observacao, envelope, despesa.Carteira)
 
 	if erro != nil {
 		return 0, erro

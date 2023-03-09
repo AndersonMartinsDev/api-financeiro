@@ -1,9 +1,9 @@
 package services
 
 import (
+	"api/src/commons/banco"
 	"api/src/models/despesa"
 	"api/src/repository"
-	"api/src/tools/banco"
 )
 
 func InserirPagamento(pagamentos despesa.Pagamento) error {

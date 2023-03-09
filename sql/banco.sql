@@ -2,6 +2,16 @@ CREATE DATABASE IF NOT EXISTS finance;
 
 USE finance;
 
+CREATE TABLE usuario(
+    id bigInt auto_increment primary key,
+    avatar BLOB, 
+    nome varchar(200) not null,
+    username varchar(200) not null,
+    senha varchar(100) not null,
+    email varchar(200)
+)ENGINE = INNODB;
+
+
 CREATE TABLE envelopes(
     id bigInt auto_increment primary key,
     titulo varchar(12) not null unique,
@@ -9,6 +19,16 @@ CREATE TABLE envelopes(
     observacao varchar(200)
 ) ENGINE=INNODB;
 
+CREATE TABLE associacao_carteira_usuario(
+    usuario_id bigInt not null,
+    FOREIGN KEY (usuario_id)
+    REFERENCES usuario(id)
+	ON DELETE CASCADE,
+    carteira_id VARCHAR(100) not null,
+    FOREIGN KEY (carteira_id)
+    REFERENCES carteira(hashid)
+	ON DELETE CASCADE
+)ENGINE = INNODB;
 
 -- resolver problema do CASCADE
 CREATE TABLE despesas(
@@ -22,16 +42,10 @@ CREATE TABLE despesas(
     observacao varchar(255),
     envelope_id bigInt,
      FOREIGN KEY(envelope_id)
-     REFERENCES envelopes(id)
-)ENGINE = INNODB;
-
-CREATE TABLE usuario(
-    id bigInt auto_increment primary key,
-    avatar BLOB, 
-    nome varchar(200) not null,
-    username varchar(200) not null,
-    senha varchar(100) not null,
-    email varchar(200)
+     REFERENCES envelopes(id),
+    carteira VARCHAR(100),
+     FOREIGN KEY(carteira_id)
+     REFERENCES associacao_carteira_usuario(carteira_id)
 )ENGINE = INNODB;
 
 CREATE TABLE pagamentos(
@@ -47,34 +61,6 @@ CREATE TABLE pagamentos(
     FOREIGN KEY (despesa_id)
     REFERENCES despesas(id)
 )ENGINE = INNODB;
-
-
-CREATE TABLE carteira(
-    hashid varchar(100) primary key not null,
-)ENGINE = INNODB;
-
-CREATE TABLE associacao_carteira_usuario(
-    usuario_id bigInt not null,
-    FOREIGN KEY (usuario_id)
-    REFERENCES usuario(id)
-	ON DELETE CASCADE,
-    carteira_id VARCHAR(100) not null,
-    FOREIGN KEY (carteira_id)
-    REFERENCES carteira(hashid)
-	ON DELETE CASCADE
-)ENGINE = INNODB;
-
-CREATE TABLE associacao_carteira_despesa(
-    carteira_id VARCHAR(100) not null,
-    FOREIGN KEY (carteira_id)
-    REFERENCES carteira(hashid)
-    ON DELETE CASCADE,
-    despesa_id bigInt not null, 
-    FOREIGN KEY (despesa_id)
-    REFERENCES despesas(id)
-    ON DELETE CASCADE
-)ENGINE = INNODB;
-
 
 CREATE VIEW v_despesa AS 
 SELECT 

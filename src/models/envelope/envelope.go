@@ -5,4 +5,5 @@ type Envelope struct {
 	Titulo     string  `json:"titulo,omitempty"`
 	Valor      float64 `json:"valor,omitempty"`
 	Observacao string  `json:"observacao,omitempty"`
+	Carteira   string
 }
