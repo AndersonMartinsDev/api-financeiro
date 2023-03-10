@@ -15,7 +15,7 @@ func GetDespesas(carteira string) ([]despesa.VDespesa, error) {
 	defer db.Close()
 
 	repositorio := repository.NewInstanceDespesa(db)
-	despesas, erro := repositorio.GetDespesas()
+	despesas, erro := repositorio.GetDespesas(carteira)
 
 	if erro != nil {
 		return nil, erro
@@ -33,7 +33,7 @@ func GetDespesasById(despesaId uint, carteira string) (despesa.Despesa, error) {
 	defer db.Close()
 
 	repositorio := repository.NewInstanceDespesa(db)
-	entity, erro := repositorio.GetDespesasById(despesaId)
+	entity, erro := repositorio.GetDespesasById(despesaId, carteira)
 	if erro != nil {
 		return despesa.Despesa{}, erro
 	}
@@ -50,6 +50,10 @@ func NovaDespesa(entity despesa.DespesaPagamento) (uint, error) {
 	}
 	defer db.Close()
 
+	if erro := entity.Despesa.Check(); erro != nil {
+		return 0, erro
+	}
+
 	repositorio := repository.NewInstanceDespesa(db)
 	id, erro := repositorio.Insert(entity.Despesa)
 
@@ -57,7 +61,9 @@ func NovaDespesa(entity despesa.DespesaPagamento) (uint, error) {
 		if entity.Despesa.Tipo == despesa.PARCELADA {
 			for _, v := range entity.Pagamentos {
 				v.DespesaId = id
-				InserirPagamento(v)
+				if erro := v.Check(); erro == nil {
+					InserirPagamento(v)
+				}
 			}
 
 		}
@@ -99,7 +105,7 @@ func AtualizaDespesa(despesa despesa.Despesa) error {
 	return nil
 }
 
-func AtualizaEnvelope(despesaId, envelopeId uint) error {
+func AtualizaAssociacaoDespesaEnvelope(despesaId, envelopeId uint) error {
 	db, erro := banco.Conectar()
 	if erro != nil {
 		return erro
@@ -117,7 +123,7 @@ func GetTotalDespesaMes(carteira string) (float64, error) {
 	}
 	defer db.Close()
 	repositorio := repository.NewInstanceDespesa(db)
-	return repositorio.GetTotalDespesaPorMes()
+	return repositorio.GetTotalDespesaPorMes(carteira)
 }
 
 func DeletaDespesa(despesaId uint, carteira string) error {
@@ -128,5 +134,5 @@ func DeletaDespesa(despesaId uint, carteira string) error {
 	defer db.Close()
 
 	repositorio := repository.NewInstanceDespesa(db)
-	return repositorio.DeletaDespesa(despesaId)
+	return repositorio.DeletaDespesa(despesaId, carteira)
 }

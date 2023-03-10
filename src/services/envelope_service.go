@@ -16,7 +16,7 @@ func BuscarEnvelopes(carteira string) ([]envelope.Envelope, error) {
 	defer bd.Close()
 
 	repositorio := repository.NewInstanceEnvelope(bd)
-	return repositorio.GetEnvelopes()
+	return repositorio.GetEnvelopes(carteira)
 }
 
 func BuscaEnvelopePorId(envelopeId uint, carteira string) (envelope.Envelope, error) {
@@ -28,7 +28,7 @@ func BuscaEnvelopePorId(envelopeId uint, carteira string) (envelope.Envelope, er
 	defer bd.Close()
 
 	repositorio := repository.NewInstanceEnvelope(bd)
-	return repositorio.GetEnvelopePorId(envelopeId)
+	return repositorio.GetEnvelopePorId(envelopeId, carteira)
 
 }
 
@@ -42,7 +42,7 @@ func BuscarEnvelopePorNome(nome, carteira string) ([]envelope.Envelope, error) {
 	defer bd.Close()
 
 	repositorio := repository.NewInstanceEnvelope(bd)
-	return repositorio.GetEnvelopePorNome(nome)
+	return repositorio.GetEnvelopePorNome(nome, carteira)
 }
 
 func InserirNovoEnvelope(envelope envelope.Envelope) (uint, error) {
@@ -66,7 +66,7 @@ func DeletarEnvelopePorID(envelopeId uint, carteira string) error {
 	defer bd.Close()
 
 	repositorio := repository.NewInstanceEnvelope(bd)
-	return repositorio.DeleteById(envelopeId)
+	return repositorio.DeleteById(envelopeId, carteira)
 }
 
 func AtualizarEnvelope(envelope envelope.Envelope, carteira string) error {

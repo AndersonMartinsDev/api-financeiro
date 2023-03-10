@@ -60,7 +60,13 @@ func (repositorio UsuarioRepositorio) UsuarioPorID(usuarioId uint) (usuario.Usua
 }
 
 func (repositorio UsuarioRepositorio) UsuarioLoginPorUsername(username string) (usuario.UsuarioLoginDto, error) {
-	query := `Select username,senha from usuario where username = ?`
+	query := `SELECT 
+				username,
+				senha,
+				acu.carteira_id 
+				from usuario 
+				LEFT JOIN associacao_carteira_usuario acu ON acu.usuario_id = id
+				where username = ?`
 	row, erro := repositorio.sql.Query(query, username)
 
 	if erro != nil {
@@ -72,6 +78,7 @@ func (repositorio UsuarioRepositorio) UsuarioLoginPorUsername(username string) (
 		if erro := row.Scan(
 			&login.Username,
 			&login.Senha,
+			&login.CarteiraId,
 		); erro != nil {
 			return usuario.UsuarioLoginDto{}, erro
 		}
@@ -80,7 +87,7 @@ func (repositorio UsuarioRepositorio) UsuarioLoginPorUsername(username string) (
 }
 
 func (repositorio UsuarioRepositorio) UsuarioDTOPorID(usuarioId uint) (usuario.UsuarioDTO, error) {
-	query := `Select id,avatar,nome,username,email from usuario where id = ?`
+	query := `Select id,avatar,nome from usuario where id = ?`
 	row, erro := repositorio.sql.Query(query, usuarioId)
 
 	if erro != nil {

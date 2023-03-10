@@ -20,19 +20,13 @@ func InserirUsuario(usuario usuario.Usuario) error {
 	}
 
 	repositorio := repository.NewInstanceUsuario(db)
-	usuarioID, erro := repositorio.NovoUsuario(usuario)
+	_, erro = repositorio.NovoUsuario(usuario)
 
 	if erro != nil {
 		return erro
 	}
 
-	if erro := NovaAssociacaoCarteiraUsuario(associacao.AssociacaoCarteiraUsuario{
-		CarteiraId: usuario.Username + usuario.Email,
-		UsuarioId:  usuarioID}); erro != nil {
-		return erro
-	}
-
-	return erro
+	return nil
 }
 
 // UsuarioPorId busca todos os atributos de usuario exceto a senha
@@ -69,4 +63,30 @@ func UsuarioDTOid(usuarioId uint) (usuario.UsuarioDTO, error) {
 
 	repositorio := repository.NewInstanceUsuario(db)
 	return repositorio.UsuarioDTOPorID(usuarioId)
+}
+
+// AssociacaoCarteiraUsuario criar uma conexão entre o usuário e a carteira correspondente
+func AssociacaoCarteiraUsuario(usuarioId uint) error {
+
+	db, erro := banco.Conectar()
+	if erro != nil {
+		return nil
+	}
+	defer db.Close()
+
+	repositorio := repository.NewInstanceUsuario(db)
+	usuario, erro := repositorio.UsuarioPorID(usuarioId)
+
+	if erro != nil {
+		return nil
+	}
+
+	if erro := NovaAssociacaoCarteiraUsuario(associacao.AssociacaoCarteiraUsuario{
+		UsuarioId:  usuario.ID,
+		CarteiraId: usuario.Username + usuario.Email,
+	}); erro != nil {
+		return erro
+	}
+
+	return nil
 }

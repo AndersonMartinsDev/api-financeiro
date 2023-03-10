@@ -19,10 +19,11 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 	var usuario usuario.UsuarioLoginDto
 	if erro := json.Unmarshal(body, &usuario); erro != nil {
+		respostas.Erro(w, http.StatusUnprocessableEntity, erro)
 		return
 	}
 
-	if erro := services.Login(usuario); erro != nil {
+	if erro := services.Login(&usuario); erro != nil {
 		respostas.Erro(w, http.StatusUnauthorized, erro)
 		return
 	}

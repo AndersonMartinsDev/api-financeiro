@@ -24,7 +24,7 @@ func AtualizaEnvelopeDespesa(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	erro = services.AtualizaEnvelope(uint(despesaId), uint(envelopeId))
+	erro = services.AtualizaAssociacaoDespesaEnvelope(uint(despesaId), uint(envelopeId))
 	if erro != nil {
 		respostas.Erro(w, http.StatusBadRequest, erro)
 		return

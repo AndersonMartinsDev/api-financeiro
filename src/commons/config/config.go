@@ -41,6 +41,4 @@ func Carregar() {
 	fmt.Println(Uri)
 
 	// fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local", DB_USER, DB_PASS, DB_HOST, DB_PORT, DB_NAME)
-
-	SecretKey = []byte(os.Getenv("SECRET_KEY"))
 }

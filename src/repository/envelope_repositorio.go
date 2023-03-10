@@ -13,9 +13,9 @@ func NewInstanceEnvelope(sql *sql.DB) *EnvelopeRepositorio {
 	return &EnvelopeRepositorio{sql}
 }
 
-func (repository EnvelopeRepositorio) GetEnvelopes() ([]envelope.Envelope, error) {
+func (repository EnvelopeRepositorio) GetEnvelopes(carteira string) ([]envelope.Envelope, error) {
 
-	linhas, erro := repository.sql.Query("Select id, titulo, valor,observacao from envelopes")
+	linhas, erro := repository.sql.Query("Select id, titulo, valor, observacao from envelopes where carteira = ?", carteira)
 
 	if erro != nil {
 		return nil, erro
@@ -33,8 +33,8 @@ func (repository EnvelopeRepositorio) GetEnvelopes() ([]envelope.Envelope, error
 	return envelopes, erro
 }
 
-func (repository EnvelopeRepositorio) GetEnvelopePorNome(nome string) ([]envelope.Envelope, error) {
-	linhas, erro := repository.sql.Query("Select id, titulo, valor, observacao from envelopes where titulo LIKE ?", "%"+nome+"%")
+func (repository EnvelopeRepositorio) GetEnvelopePorNome(nome, carteira string) ([]envelope.Envelope, error) {
+	linhas, erro := repository.sql.Query("Select id, titulo, valor, observacao from envelopes where titulo LIKE ? and carteira = ?", "%"+nome+"%", carteira)
 	if erro != nil {
 		return nil, erro
 	}
@@ -73,8 +73,8 @@ func (repository EnvelopeRepositorio) Insert(envelope envelope.Envelope) (uint, 
 	return uint(envelopeId), nil
 }
 
-func (repository EnvelopeRepositorio) GetEnvelopePorId(envelopeId uint) (envelope.Envelope, error) {
-	linha, erro := repository.sql.Query("select id, titulo, valor, observacao from envelopes where id = ?", envelopeId)
+func (repository EnvelopeRepositorio) GetEnvelopePorId(envelopeId uint, carteira string) (envelope.Envelope, error) {
+	linha, erro := repository.sql.Query("select id, titulo, valor, observacao from envelopes where id = ? and carteira = ?", envelopeId, carteira)
 	if erro != nil {
 		return envelope.Envelope{}, erro
 	}
@@ -95,8 +95,8 @@ func (repository EnvelopeRepositorio) GetEnvelopePorId(envelopeId uint) (envelop
 	return entity, nil
 }
 
-func (repository EnvelopeRepositorio) DeleteById(envelopeId uint) error {
-	statement, erro := repository.sql.Prepare("delete from envelopes where id = ?")
+func (repository EnvelopeRepositorio) DeleteById(envelopeId uint, carteira string) error {
+	statement, erro := repository.sql.Prepare("delete from envelopes where id = ? and carteira = ?")
 
 	if erro != nil {
 		return erro
@@ -109,7 +109,7 @@ func (repository EnvelopeRepositorio) DeleteById(envelopeId uint) error {
 }
 
 func (repository EnvelopeRepositorio) AtualizarEnvelope(envelope envelope.Envelope) error {
-	statement, erro := repository.sql.Prepare("update envelopes set titulo = ?,valor = ? , observacao =? where id =?")
+	statement, erro := repository.sql.Prepare("update envelopes set titulo=?, valor=? , observacao =? where id =?")
 	if erro != nil {
 		return erro
 	}

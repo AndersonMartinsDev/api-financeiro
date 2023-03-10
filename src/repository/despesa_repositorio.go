@@ -7,7 +7,6 @@ import (
 
 var (
 	update         = `update despesas set valor=?, quitada=?, fixa=?, dia_vencimento=?, envelope_id=?,recorrencia_id= ? where id=?`
-	delete         = `delete from despesas where id = ?`
 	updateQuitacao = `update despesas set quitada=? where id = ?`
 )
 
@@ -19,7 +18,8 @@ type DespesaRepositorio struct {
 func NewInstanceDespesa(banco *sql.DB) *DespesaRepositorio {
 	return &DespesaRepositorio{banco}
 }
-func (repositorio DespesaRepositorio) GetDespesasById(despesaId uint) (despesa.Despesa, error) {
+
+func (repositorio DespesaRepositorio) GetDespesasById(despesaId uint, carteira string) (despesa.Despesa, error) {
 	query := `SELECT 		
 				DISTINCT(des.id),
 				des.titulo,
@@ -34,7 +34,7 @@ func (repositorio DespesaRepositorio) GetDespesasById(despesaId uint) (despesa.D
 			LEFT join envelopes env on env.id = des.envelope_id
 			LEFT JOIN pagamentos pgto ON pgto.despesa_id = des.id
 			`
-	linhas, erro := repositorio.sql.Query(query+" where des.id = ? ", despesaId)
+	linhas, erro := repositorio.sql.Query(query+" where des.id = ? and des.carteira = ? ", despesaId, carteira)
 	if erro != nil {
 		return despesa.Despesa{}, erro
 	}
@@ -58,11 +58,10 @@ func (repositorio DespesaRepositorio) GetDespesasById(despesaId uint) (despesa.D
 		}
 	}
 	return entity, nil
-
 }
 
 // GetDespesas tras todas as despesas gerais baseada nas despesas cadastradas
-func (repositorio DespesaRepositorio) GetDespesas() ([]despesa.VDespesa, error) {
+func (repositorio DespesaRepositorio) GetDespesas(carteira string) ([]despesa.VDespesa, error) {
 	//SE ALTERAR ESSA QUERY DEVE ALTERAR A DO BALANÇO TOTAL TAMBÉM
 	queryView := `SELECT 
 					id,
@@ -72,12 +71,15 @@ func (repositorio DespesaRepositorio) GetDespesas() ([]despesa.VDespesa, error) 
 					pagamento,
 					quitada 
 					FROM v_despesa d 
-					WHERE DATE_FORMAT(d.data_vencimento,'%m/%y') = DATE_FORMAT(NOW(),'%m/%y') 
+					WHERE 
+					d.carteira = ?
+					AND
+					(DATE_FORMAT(d.data_vencimento,'%m/%y') = DATE_FORMAT(NOW(),'%m/%y') 
 							OR d.tipo = 'FIXA' 
 							OR (d.tipo = 'UNICA' 
-								AND DATE_FORMAT(d.data_cadastro,'%m/%y') = DATE_FORMAT(NOW(),'%m/%y'))`
+								AND DATE_FORMAT(d.data_cadastro,'%m/%y') = DATE_FORMAT(NOW(),'%m/%y')))`
 
-	linhas, erro := repositorio.sql.Query(queryView)
+	linhas, erro := repositorio.sql.Query(queryView, carteira)
 	if erro != nil {
 		return nil, erro
 	}
@@ -133,7 +135,6 @@ func (repositorio DespesaRepositorio) Insert(despesa despesa.Despesa) (uint, err
 
 	return uint(ID), nil
 }
-
 func (repositorio DespesaRepositorio) Update(despesa despesa.Despesa) error {
 
 	statement, erro := repositorio.sql.Prepare(update)
@@ -168,15 +169,16 @@ func (repositorio DespesaRepositorio) AtualizaEnvelopeDespesa(despesaId, envelop
 	_, erro = statement.Exec(envelopeId, despesaId)
 	return erro
 }
-
-func (repositorio DespesaRepositorio) GetTotalDespesaPorMes() (float64, error) {
+func (repositorio DespesaRepositorio) GetTotalDespesaPorMes(carteira string) (float64, error) {
 	query_total_mes := `SELECT SUM(valor) 
 							FROM v_despesa d
-							WHERE DATE_FORMAT(d.data_vencimento,'%m/%y') = DATE_FORMAT(NOW(),'%m/%y') 
+							WHERE d.carteira = ?
+							AND
+							(DATE_FORMAT(d.data_vencimento,'%m/%y') = DATE_FORMAT(NOW(),'%m/%y') 
 									OR d.tipo = 'FIXA' 
 									OR (d.tipo = 'UNICA' 
-										AND DATE_FORMAT(d.data_cadastro,'%m/%y') = DATE_FORMAT(NOW(),'%m/%y'))`
-	total, erro := repositorio.sql.Query(query_total_mes)
+										AND DATE_FORMAT(d.data_cadastro,'%m/%y') = DATE_FORMAT(NOW(),'%m/%y')))`
+	total, erro := repositorio.sql.Query(query_total_mes, carteira)
 	if erro != nil {
 		return 0, erro
 	}
@@ -191,20 +193,18 @@ func (repositorio DespesaRepositorio) GetTotalDespesaPorMes() (float64, error) {
 	}
 	return totalValor, erro
 }
-
-func (repositorio DespesaRepositorio) DeletaDespesa(despesaID uint) error {
-
+func (repositorio DespesaRepositorio) DeletaDespesa(despesaID uint, carteira string) error {
+	delete := `delete from despesas where id = ? and carteira = ? `
 	statement, erro := repositorio.sql.Prepare(delete)
 	if erro != nil {
 		return erro
 	}
 	defer statement.Close()
 
-	_, erro = statement.Exec(despesaID)
+	_, erro = statement.Exec(despesaID, carteira)
 
 	return erro
 }
-
 func (repositorio DespesaRepositorio) UpdateStatusQuitacao(despesaId uint, quitada bool) error {
 	statement, erro := repositorio.sql.Prepare(updateQuitacao)
 	if erro != nil {

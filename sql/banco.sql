@@ -11,26 +11,24 @@ CREATE TABLE usuario(
     email varchar(200)
 )ENGINE = INNODB;
 
+CREATE TABLE associacao_carteira_usuario(
+    usuario_id bigInt not NULL,
+    FOREIGN KEY (usuario_id)
+    REFERENCES usuario(id)
+	ON DELETE CASCADE,
+    carteira_id VARCHAR(100) not NULL PRIMARY key
+)ENGINE = INNODB;
 
 CREATE TABLE envelopes(
     id bigInt auto_increment primary key,
     titulo varchar(12) not null unique,
     valor double not null,
-    observacao varchar(200)
+    observacao varchar(200),
+    carteira VARCHAR(100),
+     FOREIGN KEY(carteira)
+     REFERENCES associacao_carteira_usuario(carteira_id)
 ) ENGINE=INNODB;
 
-CREATE TABLE associacao_carteira_usuario(
-    usuario_id bigInt not null,
-    FOREIGN KEY (usuario_id)
-    REFERENCES usuario(id)
-	ON DELETE CASCADE,
-    carteira_id VARCHAR(100) not null,
-    FOREIGN KEY (carteira_id)
-    REFERENCES carteira(hashid)
-	ON DELETE CASCADE
-)ENGINE = INNODB;
-
--- resolver problema do CASCADE
 CREATE TABLE despesas(
     id bigInt auto_increment primary key,
     titulo varchar(30) not null,
@@ -44,7 +42,7 @@ CREATE TABLE despesas(
      FOREIGN KEY(envelope_id)
      REFERENCES envelopes(id),
     carteira VARCHAR(100),
-     FOREIGN KEY(carteira_id)
+     FOREIGN KEY(carteira)
      REFERENCES associacao_carteira_usuario(carteira_id)
 )ENGINE = INNODB;
 
@@ -72,7 +70,8 @@ pgto.data_vencimento,
 FORMAT(des.valor,2) AS valor,
 IF(des.tipo='UNICA','Essa conta não possui frequência',CONCAT('Vence dia ',IF(des.tipo <> 'PARCELADA', des.dia_vencimento,DAY(pgto.data_vencimento)))) AS condicao,
 IF(des.tipo <> 'PARCELADA','à vista',CONCAT((SELECT COUNT(pg.id) FROM pagamentos pg WHERE pg.despesa_id = des.id AND pg.data_pagamento IS NOT NULL),'/' ,(SELECT COUNT(pg.id) FROM pagamentos pg WHERE pg.despesa_id = des.id))) AS pagamento,
-IF(des.tipo <> 'PARCELADA', des.quitada, IF(DATE_FORMAT(pgto.data_pagamento,'%m/%y')=DATE_FORMAT(NOW(),'%m/%y'),TRUE,FALSE)) AS quitada 
+IF(des.tipo <> 'PARCELADA', des.quitada, IF(DATE_FORMAT(pgto.data_pagamento,'%m/%y')=DATE_FORMAT(NOW(),'%m/%y'),TRUE,FALSE)) AS quitada,
+des.carteira
 FROM despesas des 
 LEFT JOIN pagamentos pgto ON pgto.despesa_id = des.id
 GROUP BY 

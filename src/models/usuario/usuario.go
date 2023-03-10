@@ -14,7 +14,7 @@ type Usuario struct {
 	Avatar   string `json:"avatar,omitempty"`
 	Nome     string `json:"nome"`
 	Username string `json:"username"`
-	Senha    string
+	Senha    string `json:"senha,omitempty"`
 	Email    string `json:"email,omitempty"`
 }
 
@@ -64,7 +64,7 @@ func (u *Usuario) validateUsuario() error {
 
 func validated(valor, campo string) error {
 	if valor == "" {
-		return fmt.Errorf("o campo %s não pode ser vazio", valor)
+		return fmt.Errorf("o campo %s não pode ser vazio", campo)
 	}
 	return nil
 }

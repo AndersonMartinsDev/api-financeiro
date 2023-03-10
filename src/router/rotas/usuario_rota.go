@@ -24,4 +24,10 @@ var usuarioRouter = []Rota{
 		Func:         controller.UsuarioDTOPorId,
 		Autenticacao: true,
 	},
+	{
+		URI:          "/usuario/carteira/{usuarioId}",
+		Metodo:       http.MethodPost,
+		Func:         controller.AssociacaoCarteiraUsuario,
+		Autenticacao: true,
+	},
 }

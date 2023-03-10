@@ -72,3 +72,19 @@ func UsuarioDTOPorId(w http.ResponseWriter, r *http.Request) {
 
 	respostas.JSON(w, http.StatusOK, entity)
 }
+
+func AssociacaoCarteiraUsuario(w http.ResponseWriter, r *http.Request) {
+	queryParameter := mux.Vars(r)
+	usuarioId, erro := strconv.ParseUint(queryParameter["usuarioId"], 10, 64)
+
+	if erro != nil {
+		respostas.Erro(w, http.StatusUnprocessableEntity, erro)
+		return
+	}
+
+	if erro := services.AssociacaoCarteiraUsuario(uint(usuarioId)); erro != nil {
+		respostas.Erro(w, http.StatusBadRequest, erro)
+		return
+	}
+	respostas.JSON(w, http.StatusOK, "Success!")
+}

@@ -9,17 +9,20 @@ import (
 	"time"
 
 	jwt "github.com/dgrijalva/jwt-go"
+	"golang.org/x/crypto/bcrypt"
 )
 
 // CriarToken token com as permissões de usuário
 func CriarToken(usuario usuario.UsuarioLoginDto) (string, error) {
+	config.SecretKey, _ = bcrypt.GenerateFromPassword([]byte(usuario.CarteiraId+usuario.Username), bcrypt.MinCost)
 	permissoes := jwt.MapClaims{}
 	permissoes["authorized"] = true
 	permissoes["exp"] = time.Now().Add(time.Hour * 6).Unix()
 	permissoes["username"] = usuario.Username
 	permissoes["carteiraId"] = usuario.CarteiraId
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, permissoes)
-	return token.Signature, nil //secret
+	token.Valid = true
+	return token.SignedString([]byte(config.SecretKey)) //secret
 }
 
 // ValidarToken verifica se o token na requisição é valido
@@ -64,7 +67,7 @@ func ExtrairCarteiraId(r *http.Request) (string, error) {
 	}
 
 	if permissoes, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-		carteira := fmt.Sprintf("%s", permissoes["carteira"])
+		carteira := fmt.Sprintf("%s", permissoes["carteiraId"])
 		if erro != nil {
 			return "", erro
 		}
