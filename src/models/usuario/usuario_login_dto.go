@@ -1,7 +1,7 @@
 package usuario
 
 type UsuarioLoginDto struct {
-	Username   string
-	Senha      string
-	CarteiraId string
+	Username   string `json:"username"`
+	Senha      string `json:"senha"`
+	CarteiraId string `json:"carteiraId,omitempty"`
 }

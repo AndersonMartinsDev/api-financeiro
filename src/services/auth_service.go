@@ -6,8 +6,10 @@ import (
 )
 
 func Login(usuario *usuario.UsuarioLoginDto) error {
-	login, erro := UsuarioLoginPorUsername(usuario.Username)
-	usuario.CarteiraId = login.CarteiraId
+	login, erro := UsuarioLoginDtoPorUsername(usuario.Username)
+	if login.CarteiraId != "" {
+		usuario.CarteiraId = login.CarteiraId
+	}
 	if erro != nil {
 		return erro
 	}

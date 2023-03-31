@@ -42,7 +42,7 @@ func UsuarioPorId(usuarioId uint) (usuario.Usuario, error) {
 }
 
 // UsuarioLoginPorUsername busca todos os atributos de usuario exceto a senha
-func UsuarioLoginPorUsername(username string) (usuario.UsuarioLoginDto, error) {
+func UsuarioLoginDtoPorUsername(username string) (usuario.UsuarioLoginDto, error) {
 	db, erro := banco.Conectar()
 	if erro != nil {
 		return usuario.UsuarioLoginDto{}, erro
@@ -51,6 +51,18 @@ func UsuarioLoginPorUsername(username string) (usuario.UsuarioLoginDto, error) {
 
 	repositorio := repository.NewInstanceUsuario(db)
 	return repositorio.UsuarioLoginPorUsername(username)
+}
+
+// UsuarioLoginPorUsername busca todos os atributos de usuario exceto a senha
+func UsuarioResumeDTOUsername(username string) (usuario.UsuarioResumeDTO, error) {
+	db, erro := banco.Conectar()
+	if erro != nil {
+		return usuario.UsuarioResumeDTO{}, erro
+	}
+	defer db.Close()
+
+	repositorio := repository.NewInstanceUsuario(db)
+	return repositorio.UsuarioResumeDTOPorUsername(username)
 }
 
 // UsuarioDTOid busca uma versão enxuta de usuario
@@ -89,4 +101,16 @@ func AssociacaoCarteiraUsuario(usuarioId uint) error {
 	}
 
 	return nil
+}
+
+func ExisteCarteiraVinculada(username string) bool {
+
+	db, erro := banco.Conectar()
+	if erro != nil {
+		return false
+	}
+	defer db.Close()
+
+	repositorio := repository.NewInstanceUsuario(db)
+	return repositorio.ExisteCarteiraVinculada(username)
 }

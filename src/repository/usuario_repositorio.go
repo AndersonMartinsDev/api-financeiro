@@ -59,11 +59,37 @@ func (repositorio UsuarioRepositorio) UsuarioPorID(usuarioId uint) (usuario.Usua
 	return usuarioE, nil
 }
 
+func (repositorio UsuarioRepositorio) UsuarioResumeDTOPorUsername(username string) (usuario.UsuarioResumeDTO, error) {
+	query := `SELECT 
+				id,
+				nome,
+				username,
+				email
+				from usuario where username = ?`
+	row, erro := repositorio.sql.Query(query, username)
+
+	if erro != nil {
+		return usuario.UsuarioResumeDTO{}, erro
+	}
+
+	var login usuario.UsuarioResumeDTO
+	if row.Next() {
+		if erro := row.Scan(
+			&login.ID,
+			&login.Nome,
+			&login.Username,
+			&login.Email,
+		); erro != nil {
+			return usuario.UsuarioResumeDTO{}, erro
+		}
+	}
+	return login, nil
+}
 func (repositorio UsuarioRepositorio) UsuarioLoginPorUsername(username string) (usuario.UsuarioLoginDto, error) {
 	query := `SELECT 
 				username,
 				senha,
-				acu.carteira_id 
+				IF(acu.carteira_id IS NULL,"",acu.carteira_id)
 				from usuario 
 				LEFT JOIN associacao_carteira_usuario acu ON acu.usuario_id = id
 				where username = ?`
@@ -105,4 +131,29 @@ func (repositorio UsuarioRepositorio) UsuarioDTOPorID(usuarioId uint) (usuario.U
 		}
 	}
 	return entity, nil
+}
+
+func (repositorio UsuarioRepositorio) ExisteCarteiraVinculada(username string) bool {
+	query := `	
+	SELECT 
+		IF(acu.carteira_id is NULL,FALSE,TRUE) as temCarteira
+	FROM usuario 
+	LEFT JOIN associacao_carteira_usuario acu ON acu.usuario_id = id
+	WHERE username = ?`
+
+	row, erro := repositorio.sql.Query(query, username)
+
+	if erro != nil {
+		return false
+	}
+
+	var temCarteira bool
+	if row.Next() {
+		if erro := row.Scan(
+			&temCarteira,
+		); erro != nil {
+			return false
+		}
+	}
+	return temCarteira
 }

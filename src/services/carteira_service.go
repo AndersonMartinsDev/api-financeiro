@@ -5,6 +5,6 @@ import (
 )
 
 func NovaHashCarteira(carteiraId string) ([]byte, error) {
-	return bcrypt.GenerateFromPassword([]byte(carteiraId), bcrypt.DefaultCost)
+	return bcrypt.GenerateFromPassword([]byte(carteiraId), bcrypt.MinCost)
 
 }

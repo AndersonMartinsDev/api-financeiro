@@ -36,3 +36,35 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 	respostas.JSON(w, http.StatusOK, token)
 }
+
+func CriarNovaCarteira(w http.ResponseWriter, r *http.Request) {
+	body, erro := ioutil.ReadAll(r.Body)
+	if erro != nil {
+		respostas.Erro(w, http.StatusUnprocessableEntity, erro)
+		return
+	}
+
+	var usuario usuario.UsuarioResumeDTO
+	if erro := json.Unmarshal(body, &usuario); erro != nil {
+		respostas.Erro(w, http.StatusUnprocessableEntity, erro)
+		return
+	}
+
+	usuarioBD, _ := services.UsuarioResumeDTOUsername(usuario.Username)
+	if erro := services.AssociacaoCarteiraUsuario(usuarioBD.ID); erro != nil {
+		respostas.Erro(w, http.StatusUnprocessableEntity, erro)
+		return
+	}
+
+	respostas.JSON(w, http.StatusOK, true)
+}
+
+func ExisteCarteiraVinculada(w http.ResponseWriter, r *http.Request) {
+	username, erro := autenticacao.ExtrairUsername(r)
+	if erro != nil {
+		respostas.Erro(w, http.StatusUnprocessableEntity, erro)
+		return
+	}
+	temCarteira := services.ExisteCarteiraVinculada(username)
+	respostas.JSON(w, http.StatusOK, temCarteira)
+}

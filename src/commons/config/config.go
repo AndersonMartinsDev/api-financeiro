@@ -10,7 +10,7 @@ import (
 
 var (
 	//SecretKey chave secreta
-	SecretKey []byte
+	SecretKey = "VS_3zaqZyL8pgJSiKqINkNTBcRn88Br7wA2eOLxTwQo"
 	//Porta seta porta para rodar a aplicação
 	Porta = 0
 	//URI possui o caminho do banco de dados

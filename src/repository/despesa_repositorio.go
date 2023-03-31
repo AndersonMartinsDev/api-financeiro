@@ -170,7 +170,8 @@ func (repositorio DespesaRepositorio) AtualizaEnvelopeDespesa(despesaId, envelop
 	return erro
 }
 func (repositorio DespesaRepositorio) GetTotalDespesaPorMes(carteira string) (float64, error) {
-	query_total_mes := `SELECT SUM(valor) 
+	query_total_mes := `SELECT 
+							ROUND(SUM(valor) , 2)
 							FROM v_despesa d
 							WHERE d.carteira = ?
 							AND

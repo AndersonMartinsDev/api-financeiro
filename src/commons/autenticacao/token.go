@@ -4,17 +4,17 @@ import (
 	"api/src/commons/config"
 	"api/src/models/usuario"
 	"fmt"
+	"log"
 	"net/http"
 	"strings"
 	"time"
 
 	jwt "github.com/dgrijalva/jwt-go"
-	"golang.org/x/crypto/bcrypt"
 )
 
 // CriarToken token com as permissões de usuário
 func CriarToken(usuario usuario.UsuarioLoginDto) (string, error) {
-	config.SecretKey, _ = bcrypt.GenerateFromPassword([]byte(usuario.CarteiraId+usuario.Username), bcrypt.MinCost)
+	//1234
 	permissoes := jwt.MapClaims{}
 	permissoes["authorized"] = true
 	permissoes["exp"] = time.Now().Add(time.Hour * 6).Unix()
@@ -30,6 +30,7 @@ func ValidarToken(r *http.Request) error {
 	tokenString := extrairToken(r)
 	token, erro := jwt.Parse(tokenString, retornarChaveDeVerificacao)
 
+	log.Printf("ERRO DE TOKEN %s", erro)
 	if erro != nil {
 		return erro
 	}
@@ -37,7 +38,6 @@ func ValidarToken(r *http.Request) error {
 	if _, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 		return nil
 	}
-
 	return fmt.Errorf("token inválido")
 }
 
@@ -54,7 +54,7 @@ func retornarChaveDeVerificacao(token *jwt.Token) (interface{}, error) {
 	if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 		return nil, fmt.Errorf("método de assinatura inesperado! %v", token.Header["alg"])
 	}
-	return config.SecretKey, nil
+	return []byte(config.SecretKey), nil
 }
 
 // ExtrairUsuarioID
@@ -68,6 +68,26 @@ func ExtrairCarteiraId(r *http.Request) (string, error) {
 
 	if permissoes, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 		carteira := fmt.Sprintf("%s", permissoes["carteiraId"])
+		if erro != nil {
+			return "", erro
+		}
+
+		return carteira, nil
+	}
+	return "", nil
+}
+
+// ExtrairUsername
+func ExtrairUsername(r *http.Request) (string, error) {
+	tokenString := extrairToken(r)
+	token, erro := jwt.Parse(tokenString, retornarChaveDeVerificacao)
+
+	if erro != nil {
+		return "", erro
+	}
+
+	if permissoes, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		carteira := fmt.Sprintf("%s", permissoes["username"])
 		if erro != nil {
 			return "", erro
 		}
