@@ -17,8 +17,9 @@ type Rota struct {
 func Configurar(r *mux.Router) *mux.Router {
 	rotas := authRoutes
 	rotas = append(rotas, despesasRotas...)
-	rotas = append(rotas, usuarioRouter...)
+	rotas = append(rotas, usuarioRotas...)
 	rotas = append(rotas, envelopeRotas...)
+	rotas = append(rotas, pagamentosRotas...)
 
 	for _, rota := range rotas {
 		if rota.Autenticacao {

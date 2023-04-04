@@ -34,7 +34,7 @@ func Carregar() {
 	nome := os.Getenv("DB_NOME")
 	host := os.Getenv("DB_HOST")
 	porta := os.Getenv("DB_PORT")
-	db_config := "charset=utf8&parseTime=True&loc=Local"
+	db_config := "charset=utf8&parseTime=true&loc=Local"
 
 	// Uri = fmt.Sprintf("%s:%s@/%s?%s", usuario, senha, nome, db_config)
 	Uri = fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?%s", usuario, senha, host, porta, nome, db_config)

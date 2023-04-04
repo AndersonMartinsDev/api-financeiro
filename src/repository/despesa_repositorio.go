@@ -195,15 +195,24 @@ func (repositorio DespesaRepositorio) GetTotalDespesaPorMes(carteira string) (fl
 	return totalValor, erro
 }
 func (repositorio DespesaRepositorio) DeletaDespesa(despesaID uint, carteira string) error {
-	delete := `delete from despesas where id = ? and carteira = ? `
+
+	deletePagamentos := `delete from pagamentos where despesa_id = (select id from despesas where id =? and carteira =? and quitada <> 1);`
+	delete := `delete from despesas where id =? and carteira =? and quitada <> 1`
+
+	stmPagemtos, erro := repositorio.sql.Prepare(deletePagamentos)
+	if erro != nil {
+		return erro
+	}
+	defer stmPagemtos.Close()
+
 	statement, erro := repositorio.sql.Prepare(delete)
 	if erro != nil {
 		return erro
 	}
 	defer statement.Close()
 
+	stmPagemtos.Exec(despesaID, carteira)
 	_, erro = statement.Exec(despesaID, carteira)
-
 	return erro
 }
 func (repositorio DespesaRepositorio) UpdateStatusQuitacao(despesaId uint, quitada bool) error {
