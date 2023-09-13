@@ -24,4 +24,10 @@ var pagamentosRotas = []Rota{
 		Func:         controller.IndicarNovoPagamentos,
 		Autenticacao: true,
 	},
+	{
+		URI:          "/pagamentos/{pagamentoId}/remover-pagamento",
+		Metodo:       http.MethodPut,
+		Func:         controller.RemovePagamento,
+		Autenticacao: true,
+	},
 }

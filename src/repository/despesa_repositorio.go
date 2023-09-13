@@ -24,7 +24,9 @@ func (repositorio DespesaRepositorio) GetDespesasById(despesaId uint, carteira s
 				DISTINCT(des.id),
 				des.titulo,
 				des.valor,
-				des.quitada,
+				IF(( Date_format(pgto.data_pagamento, '%m/%y') =
+                    Date_format(Now(), '%m/%y')
+                       ), true, false) AS quitada,
 				des.tipo,
 				IF(des.tipo <> 'PARCELADA',des.dia_vencimento,DAY(pgto.data_vencimento)) AS dia_vencimento,
 				IF(env.id IS NULL,0,env.id),

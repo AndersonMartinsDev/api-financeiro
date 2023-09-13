@@ -74,3 +74,20 @@ func IndicarNovoPagamentos(w http.ResponseWriter, r *http.Request) {
 
 	respostas.JSON(w, http.StatusOK, "Conta nova indicada como paga")
 }
+
+func RemovePagamento(w http.ResponseWriter, r *http.Request) {
+	parametro := mux.Vars(r)
+
+	pagamentoId, erro := strconv.ParseUint(parametro["pagamentoId"], 10, 64)
+	if erro != nil {
+		respostas.Erro(w, http.StatusUnprocessableEntity, erro)
+		return
+	}
+
+	erro = services.RemoverPagamento(uint(pagamentoId))
+	if erro != nil {
+		respostas.Erro(w, http.StatusInternalServerError, erro)
+		return
+	}
+	respostas.JSON(w, http.StatusOK, "Pagamento Removido")
+}

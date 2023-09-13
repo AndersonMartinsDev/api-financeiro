@@ -52,7 +52,6 @@ CREATE TABLE pagamentos(
     data_pagamento timestamp,
     data_vencimento timestamp,
     forma_pagamento varchar(20),
-    usuario_id bigInt not null ,
     FOREIGN KEY(usuario_id)
     REFERENCES usuario(id),
     despesa_id bigInt not null,
@@ -60,20 +59,47 @@ CREATE TABLE pagamentos(
     REFERENCES despesas(id)
 )ENGINE = INNODB;
 
-CREATE VIEW v_despesa AS 
-SELECT 
-DISTINCT(des.id),
-des.titulo AS titulo,
-des.tipo AS tipo,
-des.data_cadastro,
-pgto.data_vencimento,
-ROUND(des.`valor`, 2) AS valor,
-IF(des.tipo='UNICA','Essa conta não possui frequência',CONCAT('Vence dia ',IF(des.tipo <> 'PARCELADA', des.dia_vencimento,DAY(pgto.data_vencimento)))) AS condicao,
-IF(des.tipo <> 'PARCELADA','à vista',CONCAT((SELECT COUNT(pg.id) FROM pagamentos pg WHERE pg.despesa_id = des.id AND pg.data_pagamento IS NOT NULL),'/' ,(SELECT COUNT(pg.id) FROM pagamentos pg WHERE pg.despesa_id = des.id))) AS pagamento,
-IF(des.tipo <> 'PARCELADA', des.quitada, IF(DATE_FORMAT(pgto.data_pagamento,'%m/%y')=DATE_FORMAT(NOW(),'%m/%y'),TRUE,FALSE)) AS quitada,
-des.carteira
-FROM despesas des 
-LEFT JOIN pagamentos pgto ON pgto.despesa_id = des.id
-GROUP BY 
-des.id,
-pgto.id
+-- finance.v_despesa source
+CREATE OR REPLACE
+algorithm = undefined view `v_despesa`
+AS
+  SELECT DISTINCT `des`.`id`
+                  AS `id`,
+                  `des`.`titulo`
+                     AS `titulo`,
+                  `des`.`tipo`
+                     AS `tipo`,
+                  `des`.`data_cadastro`
+                     AS `data_cadastro`,
+                  `pgto`.`data_vencimento`
+                     AS `data_vencimento`,
+                  IF(`des`.`tipo` <> 'PARCELADA', Round(`des`.valor
+                  , 2), `pgto`.valor)  AS valor,
+                  IF(( `des`.`tipo` = 'UNICA' ),
+                  'Essa conta não possui frequência',
+                  Concat('Vence dia ', IF(( `des`.`tipo` <> 'PARCELADA' ),
+                                       `des`.`dia_vencimento`,
+                                       Dayofmonth(`pgto`.`data_vencimento`))))
+                     AS `condicao`,
+                  IF(( `des`.`tipo` <> 'PARCELADA' ), 'à vista', Concat(
+                  (SELECT Count(`pg`.`id`)
+                   FROM   `pagamentos` `pg`
+                   WHERE  ( ( `pg`.`despesa_id` = `des`.`id` )
+                            AND ( `pg`.`data_pagamento` IS NOT NULL ) )), '/',
+                  (SELECT Count(`pg`.`id`)
+                   FROM
+                  `pagamentos` `pg`
+                  WHERE  (
+                  `pg`.`despesa_id` = `des`.`id` ))))
+                     AS `pagamento`,
+                   IF(( Date_format(`pgto`.`data_pagamento`, '%m/%y') =
+                    Date_format(Now(), '%m/%y')
+                       ), true, false) AS
+                  `quitada`,
+                  `des`.`carteira`
+                     AS `carteira`
+  FROM   (`despesas` `des`
+          LEFT JOIN `pagamentos` `pgto`
+                 ON (( `pgto`.`despesa_id` = `des`.`id` )))
+  GROUP  BY `des`.`id`,
+            `pgto`.`id`; 

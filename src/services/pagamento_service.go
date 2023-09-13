@@ -75,3 +75,14 @@ func IndicarNovoPagamento(pagamento despesa.Pagamento) error {
 	return repositorio.IndicarNovoPagamento(pagamento)
 
 }
+
+func RemoverPagamento(pagamentoId uint) error {
+	bd, erro := banco.Conectar()
+	if erro != nil {
+		return erro
+	}
+	defer bd.Close()
+
+	repositorio := repository.NewInstancePagamento(bd)
+	return repositorio.RemoverPagamento(pagamentoId)
+}

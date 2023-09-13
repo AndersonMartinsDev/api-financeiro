@@ -30,8 +30,8 @@ func ValidarToken(r *http.Request) error {
 	tokenString := extrairToken(r)
 	token, erro := jwt.Parse(tokenString, retornarChaveDeVerificacao)
 
-	log.Printf("ERRO DE TOKEN %s", erro)
 	if erro != nil {
+		log.Printf("ERRO DE TOKEN %s", erro)
 		return erro
 	}
 

@@ -109,3 +109,16 @@ func (repositorio *PagamentoRepositorio) VerificaUltimoPagamento(pagamento despe
 
 	return maxParcelaId, despesaId, nil
 }
+
+func (repositorio *PagamentoRepositorio) RemoverPagamento(pagamentoId uint) error {
+	update := `Update pagamentos set data_pagamento = NULL, forma_pagamento = NULL where id =?`
+
+	statement, erro := repositorio.sql.Prepare(update)
+	if erro != nil {
+		return erro
+	}
+	defer statement.Close()
+
+	_, erro = statement.Exec(pagamentoId)
+	return erro
+}
