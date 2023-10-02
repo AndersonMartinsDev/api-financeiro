@@ -103,7 +103,7 @@ func AssociacaoCarteiraUsuario(usuarioId uint) error {
 	return nil
 }
 
-func ExisteCarteiraVinculada(username string) bool {
+func ExisteCarteiraVinculada(userId uint) bool {
 
 	db, erro := banco.Conectar()
 	if erro != nil {
@@ -112,5 +112,5 @@ func ExisteCarteiraVinculada(username string) bool {
 	defer db.Close()
 
 	repositorio := repository.NewInstanceUsuario(db)
-	return repositorio.ExisteCarteiraVinculada(username)
+	return repositorio.ExisteCarteiraVinculada(userId)
 }

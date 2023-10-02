@@ -11,22 +11,14 @@ CREATE TABLE usuario(
     email varchar(200)
 )ENGINE = INNODB;
 
-CREATE TABLE associacao_carteira_usuario(
-    usuario_id bigInt not NULL,
-    FOREIGN KEY (usuario_id)
-    REFERENCES usuario(id)
-	ON DELETE CASCADE,
-    carteira_id VARCHAR(100) not NULL PRIMARY key
-)ENGINE = INNODB;
-
 CREATE TABLE envelopes(
     id bigInt auto_increment primary key,
     titulo varchar(12) not null unique,
     valor double not null,
     observacao varchar(200),
-    carteira VARCHAR(100),
-     FOREIGN KEY(carteira)
-     REFERENCES associacao_carteira_usuario(carteira_id)
+    usuario_id bigInt,
+     FOREIGN KEY(usuario_id)
+     REFERENCES usuario(id)
 ) ENGINE=INNODB;
 
 CREATE TABLE despesas(
@@ -41,9 +33,9 @@ CREATE TABLE despesas(
     envelope_id bigInt,
      FOREIGN KEY(envelope_id)
      REFERENCES envelopes(id),
-    carteira VARCHAR(100),
-     FOREIGN KEY(carteira)
-     REFERENCES associacao_carteira_usuario(carteira_id)
+    usuario_id bigInt,
+     FOREIGN KEY(usuario_id)
+     REFERENCES usuario(id)
 )ENGINE = INNODB;
 
 CREATE TABLE pagamentos(
@@ -52,12 +44,22 @@ CREATE TABLE pagamentos(
     data_pagamento timestamp,
     data_vencimento timestamp,
     forma_pagamento varchar(20),
-    FOREIGN KEY(usuario_id)
-    REFERENCES usuario(id),
     despesa_id bigInt not null,
     FOREIGN KEY (despesa_id)
     REFERENCES despesas(id)
 )ENGINE = INNODB;
+
+CREATE TABLE `associacao_carteira_usuario` (
+  `usuario_id` bigint NOT NULL,
+  `carteira_id` varchar(100) NOT NULL,
+  UNIQUE KEY `associacao_carteira_usuario_UN` (`usuario_id`,`carteira_id`),
+  KEY `usuario_id` (`usuario_id`),
+  CONSTRAINT `associacao_carteira_usuario_ibfk_1` 
+  FOREIGN KEY (`usuario_id`) 
+  REFERENCES `usuario` (`id`) 
+  ON DELETE CASCADE
+) ENGINE=INNODB;
+
 
 -- finance.v_despesa source
 CREATE OR REPLACE
@@ -96,8 +98,7 @@ AS
                     Date_format(Now(), '%m/%y')
                        ), true, false) AS
                   `quitada`,
-                  `des`.`carteira`
-                     AS `carteira`
+                  `des`.`usuario_id` as usuario 
   FROM   (`despesas` `des`
           LEFT JOIN `pagamentos` `pgto`
                  ON (( `pgto`.`despesa_id` = `des`.`id` )))

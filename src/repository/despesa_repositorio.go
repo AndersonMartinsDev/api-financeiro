@@ -6,7 +6,6 @@ import (
 )
 
 var (
-	update         = `update despesas set valor=?, quitada=?, fixa=?, dia_vencimento=?, envelope_id=?,recorrencia_id= ? where id=?`
 	updateQuitacao = `update despesas set quitada=? where id = ?`
 )
 
@@ -19,7 +18,7 @@ func NewInstanceDespesa(banco *sql.DB) *DespesaRepositorio {
 	return &DespesaRepositorio{banco}
 }
 
-func (repositorio DespesaRepositorio) GetDespesasById(despesaId uint, carteira string) (despesa.Despesa, error) {
+func (repositorio DespesaRepositorio) GetDespesasById(despesaId uint, userId uint) (despesa.Despesa, error) {
 	query := `SELECT 		
 				DISTINCT(des.id),
 				des.titulo,
@@ -36,7 +35,7 @@ func (repositorio DespesaRepositorio) GetDespesasById(despesaId uint, carteira s
 			LEFT join envelopes env on env.id = des.envelope_id
 			LEFT JOIN pagamentos pgto ON pgto.despesa_id = des.id
 			`
-	linhas, erro := repositorio.sql.Query(query+" where des.id = ? and des.carteira = ? ", despesaId, carteira)
+	linhas, erro := repositorio.sql.Query(query+" where des.id = ? and des.usuario_id = ? ", despesaId, userId)
 	if erro != nil {
 		return despesa.Despesa{}, erro
 	}
@@ -63,7 +62,7 @@ func (repositorio DespesaRepositorio) GetDespesasById(despesaId uint, carteira s
 }
 
 // GetDespesas tras todas as despesas gerais baseada nas despesas cadastradas
-func (repositorio DespesaRepositorio) GetDespesas(carteira string) ([]despesa.VDespesa, error) {
+func (repositorio DespesaRepositorio) GetDespesas(user_id uint) ([]despesa.VDespesa, error) {
 	//SE ALTERAR ESSA QUERY DEVE ALTERAR A DO BALANÇO TOTAL TAMBÉM
 	queryView := `SELECT 
 					id,
@@ -74,14 +73,14 @@ func (repositorio DespesaRepositorio) GetDespesas(carteira string) ([]despesa.VD
 					quitada 
 					FROM v_despesa d 
 					WHERE 
-					d.carteira = ?
+					d.usuario = ?
 					AND
 					(DATE_FORMAT(d.data_vencimento,'%m/%y') = DATE_FORMAT(NOW(),'%m/%y') 
 							OR d.tipo = 'FIXA' 
 							OR (d.tipo = 'UNICA' 
 								AND DATE_FORMAT(d.data_cadastro,'%m/%y') = DATE_FORMAT(NOW(),'%m/%y')))`
 
-	linhas, erro := repositorio.sql.Query(queryView, carteira)
+	linhas, erro := repositorio.sql.Query(queryView, user_id)
 	if erro != nil {
 		return nil, erro
 	}
@@ -109,7 +108,7 @@ func (repositorio DespesaRepositorio) GetDespesas(carteira string) ([]despesa.VD
 
 // Insert insere um novo registro de despesa
 func (repositorio DespesaRepositorio) Insert(despesa despesa.Despesa) (uint, error) {
-	insert := `Insert into despesas(titulo, valor, quitada, tipo, dia_vencimento, observacao, envelope_id, carteira) values(?,?,?,?,?,?,?,?)`
+	insert := `Insert into despesas(titulo, valor, quitada, tipo, dia_vencimento, observacao, envelope_id, usuario_id) values(?,?,?,?,?,?,?,?)`
 	statement, erro := repositorio.sql.Prepare(insert)
 
 	if erro != nil {
@@ -123,7 +122,7 @@ func (repositorio DespesaRepositorio) Insert(despesa despesa.Despesa) (uint, err
 		envelope = nil
 	}
 
-	result, erro := statement.Exec(despesa.Titulo, despesa.Valor, despesa.Quitada, despesa.Tipo, despesa.DiaVencimento, despesa.Observacao, envelope, despesa.Carteira)
+	result, erro := statement.Exec(despesa.Titulo, despesa.Valor, despesa.Quitada, despesa.Tipo, despesa.DiaVencimento, despesa.Observacao, envelope, despesa.Usuario)
 
 	if erro != nil {
 		return 0, erro
@@ -139,6 +138,7 @@ func (repositorio DespesaRepositorio) Insert(despesa despesa.Despesa) (uint, err
 }
 func (repositorio DespesaRepositorio) Update(despesa despesa.Despesa) error {
 
+	update := `update despesas set valor=?, quitada=?, dia_vencimento=?, envelope_id=? where id=?`
 	statement, erro := repositorio.sql.Prepare(update)
 
 	if erro != nil {
@@ -151,7 +151,7 @@ func (repositorio DespesaRepositorio) Update(despesa despesa.Despesa) error {
 		envelope = despesa.Envelope.Id
 	}
 
-	_, erro = statement.Exec(despesa.Valor, despesa.Quitada, despesa.Tipo, despesa.DiaVencimento, envelope, despesa.ID)
+	_, erro = statement.Exec(despesa.Valor, despesa.Quitada, despesa.DiaVencimento, envelope, despesa.ID)
 
 	if erro != nil {
 		return erro
@@ -171,17 +171,17 @@ func (repositorio DespesaRepositorio) AtualizaEnvelopeDespesa(despesaId, envelop
 	_, erro = statement.Exec(envelopeId, despesaId)
 	return erro
 }
-func (repositorio DespesaRepositorio) GetTotalDespesaPorMes(carteira string) (float64, error) {
+func (repositorio DespesaRepositorio) GetTotalDespesaPorMes(userId uint) (float64, error) {
 	query_total_mes := `SELECT 
 							ROUND(SUM(valor) , 2)
 							FROM v_despesa d
-							WHERE d.carteira = ?
+							WHERE d.usuario = ?
 							AND
 							(DATE_FORMAT(d.data_vencimento,'%m/%y') = DATE_FORMAT(NOW(),'%m/%y') 
 									OR d.tipo = 'FIXA' 
 									OR (d.tipo = 'UNICA' 
 										AND DATE_FORMAT(d.data_cadastro,'%m/%y') = DATE_FORMAT(NOW(),'%m/%y')))`
-	total, erro := repositorio.sql.Query(query_total_mes, carteira)
+	total, erro := repositorio.sql.Query(query_total_mes, userId)
 	if erro != nil {
 		return 0, erro
 	}
@@ -196,10 +196,10 @@ func (repositorio DespesaRepositorio) GetTotalDespesaPorMes(carteira string) (fl
 	}
 	return totalValor, erro
 }
-func (repositorio DespesaRepositorio) DeletaDespesa(despesaID uint, carteira string) error {
+func (repositorio DespesaRepositorio) DeletaDespesa(despesaID uint, userId uint) error {
 
-	deletePagamentos := `delete from pagamentos where despesa_id = (select id from despesas where id =? and carteira =? and quitada <> 1);`
-	delete := `delete from despesas where id =? and carteira =? and quitada <> 1`
+	deletePagamentos := `delete from pagamentos where despesa_id = (select id from despesas where id=? and quitada <> 1);`
+	delete := `delete from despesas where id =? and quitada <> 1`
 
 	stmPagemtos, erro := repositorio.sql.Prepare(deletePagamentos)
 	if erro != nil {
@@ -213,8 +213,8 @@ func (repositorio DespesaRepositorio) DeletaDespesa(despesaID uint, carteira str
 	}
 	defer statement.Close()
 
-	stmPagemtos.Exec(despesaID, carteira)
-	_, erro = statement.Exec(despesaID, carteira)
+	stmPagemtos.Exec(despesaID)
+	_, erro = statement.Exec(despesaID)
 	return erro
 }
 func (repositorio DespesaRepositorio) UpdateStatusQuitacao(despesaId uint, quitada bool) error {

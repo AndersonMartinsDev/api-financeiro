@@ -35,13 +35,13 @@ func AtualizaEnvelopeDespesa(w http.ResponseWriter, r *http.Request) {
 
 // GetDespesasGerais busca todas as despesas gerais contendo o mes e o ano
 func GetDespesas(w http.ResponseWriter, r *http.Request) {
-	carteira, erro := autenticacao.ExtrairCarteiraId(r)
+	user, erro := autenticacao.ExtrairUsername(r)
 	if erro != nil {
 		respostas.Erro(w, http.StatusUnprocessableEntity, erro)
 		return
 	}
 
-	lista, erro := services.GetDespesas(carteira)
+	lista, erro := services.GetDespesas(user)
 	if erro != nil {
 		respostas.Erro(w, http.StatusInternalServerError, erro)
 		return
@@ -52,13 +52,13 @@ func GetDespesas(w http.ResponseWriter, r *http.Request) {
 
 // GetTotalDespesas é soma de todas as despesas do mês
 func GetTotalDespesas(w http.ResponseWriter, r *http.Request) {
-	carteira, erro := autenticacao.ExtrairCarteiraId(r)
+	user, erro := autenticacao.ExtrairUsername(r)
 	if erro != nil {
 		respostas.Erro(w, http.StatusUnprocessableEntity, erro)
 		return
 	}
 
-	row, erro := services.GetTotalDespesaMes(carteira)
+	row, erro := services.GetTotalDespesaMes(user)
 	if erro != nil {
 		respostas.Erro(w, http.StatusInternalServerError, erro)
 		return
@@ -69,7 +69,7 @@ func GetTotalDespesas(w http.ResponseWriter, r *http.Request) {
 
 // NovaDespesa endpoint responsável por receber uma nova despesa e cadastrar
 func NovaDespesa(w http.ResponseWriter, r *http.Request) {
-	carteira, erro := autenticacao.ExtrairCarteiraId(r)
+	user, erro := autenticacao.ExtrairUsername(r)
 	if erro != nil {
 		respostas.Erro(w, http.StatusUnprocessableEntity, erro)
 		return
@@ -91,7 +91,7 @@ func NovaDespesa(w http.ResponseWriter, r *http.Request) {
 		respostas.Erro(w, http.StatusUnprocessableEntity, erro)
 		return
 	}
-	despesaPagamento.Despesa.Carteira = carteira
+	despesaPagamento.Despesa.Usuario = user
 	id, erro := services.NovaDespesa(despesaPagamento)
 	if erro != nil {
 		respostas.Erro(w, http.StatusInternalServerError, erro)
@@ -126,7 +126,7 @@ func AtualizaDespesa(w http.ResponseWriter, r *http.Request) {
 
 // GetDespesasById devolve uma despesa
 func GetDespesasById(w http.ResponseWriter, r *http.Request) {
-	carteira, erro := autenticacao.ExtrairCarteiraId(r)
+	user, erro := autenticacao.ExtrairUsername(r)
 	if erro != nil {
 		respostas.Erro(w, http.StatusUnprocessableEntity, erro)
 		return
@@ -141,7 +141,7 @@ func GetDespesasById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	despesas, erro := services.GetDespesasById(uint(despesaId), carteira)
+	despesas, erro := services.GetDespesasById(uint(despesaId), user)
 	if erro != nil {
 		respostas.Erro(w, http.StatusInternalServerError, erro)
 		return
@@ -152,7 +152,7 @@ func GetDespesasById(w http.ResponseWriter, r *http.Request) {
 
 // DeletaDespesa remove o registro da despesa da base
 func DeletaDespesa(w http.ResponseWriter, r *http.Request) {
-	carteira, erro := autenticacao.ExtrairCarteiraId(r)
+	user, erro := autenticacao.ExtrairUsername(r)
 	if erro != nil {
 		respostas.Erro(w, http.StatusUnprocessableEntity, erro)
 		return
@@ -166,7 +166,7 @@ func DeletaDespesa(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	erro = services.DeletaDespesa(uint(despesaId), carteira)
+	erro = services.DeletaDespesa(uint(despesaId), user)
 	if erro != nil {
 		respostas.Erro(w, http.StatusBadRequest, erro)
 		return

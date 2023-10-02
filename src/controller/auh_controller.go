@@ -60,11 +60,11 @@ func CriarNovaCarteira(w http.ResponseWriter, r *http.Request) {
 }
 
 func ExisteCarteiraVinculada(w http.ResponseWriter, r *http.Request) {
-	username, erro := autenticacao.ExtrairUsername(r)
+	userId, erro := autenticacao.ExtrairUsername(r)
 	if erro != nil {
 		respostas.Erro(w, http.StatusUnprocessableEntity, erro)
 		return
 	}
-	temCarteira := services.ExisteCarteiraVinculada(username)
+	temCarteira := services.ExisteCarteiraVinculada(userId)
 	respostas.JSON(w, http.StatusOK, temCarteira)
 }

@@ -19,7 +19,7 @@ func CriarToken(usuario usuario.UsuarioLoginDto) (string, error) {
 	permissoes["authorized"] = true
 	permissoes["exp"] = time.Now().Add(time.Hour * 6).Unix()
 	permissoes["username"] = usuario.Username
-	permissoes["carteiraId"] = usuario.CarteiraId
+	permissoes["username_id"] = uint(usuario.ID)
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, permissoes)
 	token.Valid = true
 	return token.SignedString([]byte(config.SecretKey)) //secret
@@ -57,42 +57,21 @@ func retornarChaveDeVerificacao(token *jwt.Token) (interface{}, error) {
 	return []byte(config.SecretKey), nil
 }
 
-// ExtrairUsuarioID
-func ExtrairCarteiraId(r *http.Request) (string, error) {
-	tokenString := extrairToken(r)
-	token, erro := jwt.Parse(tokenString, retornarChaveDeVerificacao)
-
-	if erro != nil {
-		return "", erro
-	}
-
-	if permissoes, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-		carteira := fmt.Sprintf("%s", permissoes["carteiraId"])
-		if erro != nil {
-			return "", erro
-		}
-
-		return carteira, nil
-	}
-	return "", nil
-}
-
 // ExtrairUsername
-func ExtrairUsername(r *http.Request) (string, error) {
+func ExtrairUsername(r *http.Request) (uint, error) {
 	tokenString := extrairToken(r)
 	token, erro := jwt.Parse(tokenString, retornarChaveDeVerificacao)
 
 	if erro != nil {
-		return "", erro
+		return 0, erro
 	}
 
 	if permissoes, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-		carteira := fmt.Sprintf("%s", permissoes["username"])
+		id := permissoes["username_id"].(float64)
 		if erro != nil {
-			return "", erro
+			return 0, erro
 		}
-
-		return carteira, nil
+		return uint(id), erro
 	}
-	return "", nil
+	return 0, nil
 }

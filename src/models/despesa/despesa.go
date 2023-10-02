@@ -17,7 +17,7 @@ type Despesa struct {
 	DiaVencimento uint              `json:"diavencimento,omitempty"`
 	Observacao    string            `json:"observacao,omitempty"`
 	Envelope      envelope.Envelope `json:"envelope,omitempty"`
-	Carteira      string
+	Usuario       uint
 }
 
 func (d *Despesa) Check() error {
@@ -28,10 +28,6 @@ func (d *Despesa) Check() error {
 }
 
 func (d *Despesa) validatedDespesa() error {
-
-	if erro := validatedText(d.Carteira, "carteira"); erro != nil {
-		return erro
-	}
 
 	if erro := validatedText(d.Titulo, "titulo"); erro != nil {
 		return erro

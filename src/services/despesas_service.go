@@ -7,7 +7,7 @@ import (
 )
 
 // GetDespesas busca todas as despesas do banco
-func GetDespesas(carteira string) ([]despesa.VDespesa, error) {
+func GetDespesas(user_id uint) ([]despesa.VDespesa, error) {
 	db, erro := banco.Conectar()
 	if erro != nil {
 		return nil, erro
@@ -15,7 +15,7 @@ func GetDespesas(carteira string) ([]despesa.VDespesa, error) {
 	defer db.Close()
 
 	repositorio := repository.NewInstanceDespesa(db)
-	despesas, erro := repositorio.GetDespesas(carteira)
+	despesas, erro := repositorio.GetDespesas(user_id)
 
 	if erro != nil {
 		return nil, erro
@@ -24,7 +24,7 @@ func GetDespesas(carteira string) ([]despesa.VDespesa, error) {
 }
 
 // GetDespesaPorId busca despesa por id
-func GetDespesasById(despesaId uint, carteira string) (despesa.Despesa, error) {
+func GetDespesasById(despesaId uint, userId uint) (despesa.Despesa, error) {
 	db, erro := banco.Conectar()
 
 	if erro != nil {
@@ -33,7 +33,7 @@ func GetDespesasById(despesaId uint, carteira string) (despesa.Despesa, error) {
 	defer db.Close()
 
 	repositorio := repository.NewInstanceDespesa(db)
-	entity, erro := repositorio.GetDespesasById(despesaId, carteira)
+	entity, erro := repositorio.GetDespesasById(despesaId, userId)
 	if erro != nil {
 		return despesa.Despesa{}, erro
 	}
@@ -116,17 +116,17 @@ func AtualizaAssociacaoDespesaEnvelope(despesaId, envelopeId uint) error {
 	return repositorio.AtualizaEnvelopeDespesa(despesaId, envelopeId)
 }
 
-func GetTotalDespesaMes(carteira string) (float64, error) {
+func GetTotalDespesaMes(userId uint) (float64, error) {
 	db, erro := banco.Conectar()
 	if erro != nil {
 		return 0, erro
 	}
 	defer db.Close()
 	repositorio := repository.NewInstanceDespesa(db)
-	return repositorio.GetTotalDespesaPorMes(carteira)
+	return repositorio.GetTotalDespesaPorMes(userId)
 }
 
-func DeletaDespesa(despesaId uint, carteira string) error {
+func DeletaDespesa(despesaId uint, userId uint) error {
 	db, erro := banco.Conectar()
 	if erro != nil {
 		return erro
@@ -134,5 +134,5 @@ func DeletaDespesa(despesaId uint, carteira string) error {
 	defer db.Close()
 
 	repositorio := repository.NewInstanceDespesa(db)
-	return repositorio.DeletaDespesa(despesaId, carteira)
+	return repositorio.DeletaDespesa(despesaId, userId)
 }

@@ -15,7 +15,7 @@ import (
 
 // InsereNovoEnvelope busca o servico para inserir o dado no banco
 func InsereNovoEnvelope(w http.ResponseWriter, r *http.Request) {
-	carteira, erro := autenticacao.ExtrairCarteiraId(r)
+	user, erro := autenticacao.ExtrairUsername(r)
 	if erro != nil {
 		respostas.Erro(w, http.StatusUnprocessableEntity, erro)
 		return
@@ -33,7 +33,7 @@ func InsereNovoEnvelope(w http.ResponseWriter, r *http.Request) {
 		respostas.Erro(w, http.StatusInternalServerError, erro)
 		return
 	}
-	entity.Carteira = carteira
+	entity.Usuario = user
 	response, erro := services.InserirNovoEnvelope(entity)
 
 	if erro != nil {
@@ -45,12 +45,12 @@ func InsereNovoEnvelope(w http.ResponseWriter, r *http.Request) {
 
 // BuscarEnvelopes busca o servico para inserir o dado no banco
 func BuscarEnvelopes(w http.ResponseWriter, r *http.Request) {
-	carteira, erro := autenticacao.ExtrairCarteiraId(r)
+	user, erro := autenticacao.ExtrairUsername(r)
 	if erro != nil {
 		respostas.Erro(w, http.StatusUnprocessableEntity, erro)
 		return
 	}
-	response, erro := services.BuscarEnvelopes(carteira)
+	response, erro := services.BuscarEnvelopes(user)
 	if erro != nil {
 		respostas.Erro(w, http.StatusInternalServerError, erro)
 		return
@@ -60,14 +60,14 @@ func BuscarEnvelopes(w http.ResponseWriter, r *http.Request) {
 
 // BuscarEnvelopePorNome busca o servico para inserir o dado no banco
 func BuscarEnvelopePorNome(w http.ResponseWriter, r *http.Request) {
-	carteira, erro := autenticacao.ExtrairCarteiraId(r)
+	user, erro := autenticacao.ExtrairUsername(r)
 	if erro != nil {
 		respostas.Erro(w, http.StatusUnprocessableEntity, erro)
 		return
 	}
 	parametro := mux.Vars(r)
 	nome := parametro["nome"]
-	envelopes, erro := services.BuscarEnvelopePorNome(nome, carteira)
+	envelopes, erro := services.BuscarEnvelopePorNome(nome, user)
 	if erro != nil {
 		respostas.Erro(w, http.StatusInternalServerError, erro)
 		return
@@ -77,7 +77,7 @@ func BuscarEnvelopePorNome(w http.ResponseWriter, r *http.Request) {
 
 // BuscaEnvelopePorId busca o servico para inserir o dado no banco
 func BuscaEnvelopePorId(w http.ResponseWriter, r *http.Request) {
-	carteira, erro := autenticacao.ExtrairCarteiraId(r)
+	user, erro := autenticacao.ExtrairUsername(r)
 	if erro != nil {
 		respostas.Erro(w, http.StatusUnprocessableEntity, erro)
 		return
@@ -90,7 +90,7 @@ func BuscaEnvelopePorId(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	envelope, erro := services.BuscaEnvelopePorId(uint(envelopeId), carteira)
+	envelope, erro := services.BuscaEnvelopePorId(uint(envelopeId), user)
 	if erro != nil {
 		respostas.Erro(w, http.StatusInternalServerError, erro)
 		return
@@ -100,7 +100,7 @@ func BuscaEnvelopePorId(w http.ResponseWriter, r *http.Request) {
 
 // DeletaEnvelopePorId busca o servico para inserir o dado no banco
 func DeletaEnvelopePorId(w http.ResponseWriter, r *http.Request) {
-	carteira, erro := autenticacao.ExtrairCarteiraId(r)
+	user, erro := autenticacao.ExtrairUsername(r)
 	if erro != nil {
 		respostas.Erro(w, http.StatusUnprocessableEntity, erro)
 		return
@@ -115,7 +115,7 @@ func DeletaEnvelopePorId(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if erro := services.DeletarEnvelopePorID(uint(envelopeId), carteira); erro != nil {
+	if erro := services.DeletarEnvelopePorID(uint(envelopeId), user); erro != nil {
 		respostas.Erro(w, http.StatusBadRequest, erro)
 		return
 	}
@@ -124,7 +124,7 @@ func DeletaEnvelopePorId(w http.ResponseWriter, r *http.Request) {
 
 // AtualizaEnvelope busca o servico para inserir o dado no banco
 func AtualizaEnvelope(w http.ResponseWriter, r *http.Request) {
-	carteira, erro := autenticacao.ExtrairCarteiraId(r)
+	user, erro := autenticacao.ExtrairUsername(r)
 	if erro != nil {
 		respostas.Erro(w, http.StatusUnprocessableEntity, erro)
 		return
@@ -141,7 +141,7 @@ func AtualizaEnvelope(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if erro := services.AtualizarEnvelope(envelope, carteira); erro != nil {
+	if erro := services.AtualizarEnvelope(envelope, user); erro != nil {
 		respostas.Erro(w, http.StatusBadRequest, erro)
 		return
 	}

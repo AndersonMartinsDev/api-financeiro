@@ -13,9 +13,9 @@ func NewInstanceEnvelope(sql *sql.DB) *EnvelopeRepositorio {
 	return &EnvelopeRepositorio{sql}
 }
 
-func (repository EnvelopeRepositorio) GetEnvelopes(carteira string) ([]envelope.Envelope, error) {
+func (repository EnvelopeRepositorio) GetEnvelopes(userId uint) ([]envelope.Envelope, error) {
 
-	linhas, erro := repository.sql.Query("Select id, titulo, valor, observacao from envelopes where carteira = ?", carteira)
+	linhas, erro := repository.sql.Query("Select id, titulo, valor, observacao from envelopes where usuario_id = ?", userId)
 
 	if erro != nil {
 		return nil, erro
@@ -33,8 +33,8 @@ func (repository EnvelopeRepositorio) GetEnvelopes(carteira string) ([]envelope.
 	return envelopes, erro
 }
 
-func (repository EnvelopeRepositorio) GetEnvelopePorNome(nome, carteira string) ([]envelope.Envelope, error) {
-	linhas, erro := repository.sql.Query("Select id, titulo, valor, observacao from envelopes where titulo LIKE ? and carteira = ?", "%"+nome+"%", carteira)
+func (repository EnvelopeRepositorio) GetEnvelopePorNome(nome string, userId uint) ([]envelope.Envelope, error) {
+	linhas, erro := repository.sql.Query("Select id, titulo, valor, observacao from envelopes where titulo LIKE ? and usuario_id = ?", "%"+nome+"%", userId)
 	if erro != nil {
 		return nil, erro
 	}
@@ -57,13 +57,13 @@ func (repository EnvelopeRepositorio) GetEnvelopePorNome(nome, carteira string) 
 }
 
 func (repository EnvelopeRepositorio) Insert(envelope envelope.Envelope) (uint, error) {
-	statement, erro := repository.sql.Prepare("Insert into envelopes(titulo,valor,observacao,carteira) values(?,?,?,?)")
+	statement, erro := repository.sql.Prepare("Insert into envelopes(titulo,valor,observacao,usuario_id) values(?,?,?,?)")
 	if erro != nil {
 		return 0, erro
 	}
 	defer statement.Close()
 
-	result, erro := statement.Exec(envelope.Titulo, envelope.Valor, envelope.Observacao, envelope.Carteira)
+	result, erro := statement.Exec(envelope.Titulo, envelope.Valor, envelope.Observacao, envelope.Usuario)
 
 	if erro != nil {
 		return 0, erro
@@ -73,8 +73,8 @@ func (repository EnvelopeRepositorio) Insert(envelope envelope.Envelope) (uint, 
 	return uint(envelopeId), nil
 }
 
-func (repository EnvelopeRepositorio) GetEnvelopePorId(envelopeId uint, carteira string) (envelope.Envelope, error) {
-	linha, erro := repository.sql.Query("select id, titulo, valor, observacao from envelopes where id = ? and carteira = ?", envelopeId, carteira)
+func (repository EnvelopeRepositorio) GetEnvelopePorId(envelopeId, userId uint) (envelope.Envelope, error) {
+	linha, erro := repository.sql.Query("select id, titulo, valor, observacao from envelopes where id = ? and usuario_id = ?", envelopeId, userId)
 	if erro != nil {
 		return envelope.Envelope{}, erro
 	}
@@ -95,8 +95,8 @@ func (repository EnvelopeRepositorio) GetEnvelopePorId(envelopeId uint, carteira
 	return entity, nil
 }
 
-func (repository EnvelopeRepositorio) DeleteById(envelopeId uint, carteira string) error {
-	statement, erro := repository.sql.Prepare("delete from envelopes where id = ? and carteira = ?")
+func (repository EnvelopeRepositorio) DeleteById(envelopeId, userId uint) error {
+	statement, erro := repository.sql.Prepare("delete from envelopes where id = ? and usuario_id = ?")
 
 	if erro != nil {
 		return erro
@@ -104,18 +104,18 @@ func (repository EnvelopeRepositorio) DeleteById(envelopeId uint, carteira strin
 
 	defer statement.Close()
 
-	_, erro = statement.Exec(envelopeId)
+	_, erro = statement.Exec(envelopeId, userId)
 	return erro
 }
 
-func (repository EnvelopeRepositorio) AtualizarEnvelope(envelope envelope.Envelope) error {
-	statement, erro := repository.sql.Prepare("update envelopes set titulo=?, valor=? , observacao =? where id =?")
+func (repository EnvelopeRepositorio) AtualizarEnvelope(envelope envelope.Envelope, userId uint) error {
+	statement, erro := repository.sql.Prepare("update envelopes set titulo=?, valor=? , observacao =? where id =? and usuario_id =?")
 	if erro != nil {
 		return erro
 	}
 	defer statement.Close()
 
-	_, erro = statement.Exec(envelope.Titulo, envelope.Valor, envelope.Observacao, envelope.Id)
+	_, erro = statement.Exec(envelope.Titulo, envelope.Valor, envelope.Observacao, envelope.Id, userId)
 	return erro
 }
 
