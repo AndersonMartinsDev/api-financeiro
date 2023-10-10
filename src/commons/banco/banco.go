@@ -18,6 +18,5 @@ func Conectar() (*sql.DB, error) {
 		db.Close()
 		return nil, erro
 	}
-
 	return db, nil
 }

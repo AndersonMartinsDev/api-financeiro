@@ -28,6 +28,7 @@ func (repositorio DespesaRepositorio) GetDespesasById(despesaId uint, userId uin
                        ), true, false) AS quitada,
 				des.tipo,
 				IF(des.tipo <> 'PARCELADA',des.dia_vencimento,DAY(pgto.data_vencimento)) AS dia_vencimento,
+				des.observacao,
 				IF(env.id IS NULL,0,env.id),
 				IF(env.titulo IS NULL,"",env.titulo),
 				IF(env.titulo IS NULL,"",env.observacao)
@@ -51,6 +52,7 @@ func (repositorio DespesaRepositorio) GetDespesasById(despesaId uint, userId uin
 			&entity.Quitada,
 			&entity.Tipo,
 			&entity.DiaVencimento,
+			&entity.Observacao,
 			&entity.Envelope.Id,
 			&entity.Envelope.Titulo,
 			&entity.Envelope.Observacao,
@@ -62,8 +64,18 @@ func (repositorio DespesaRepositorio) GetDespesasById(despesaId uint, userId uin
 }
 
 // GetDespesas tras todas as despesas gerais baseada nas despesas cadastradas
-func (repositorio DespesaRepositorio) GetDespesas(user_id uint) ([]despesa.VDespesa, error) {
+func (repositorio DespesaRepositorio) GetDespesas(user_id uint, filter string) ([]despesa.VDespesa, error) {
 	//SE ALTERAR ESSA QUERY DEVE ALTERAR A DO BALANÇO TOTAL TAMBÉM
+	queryDefault := `AND
+					(DATE_FORMAT(d.data_vencimento,'%m/%Y') = DATE_FORMAT(NOW(),'%m/%Y') 
+							OR d.tipo = 'FIXA' 
+							OR (d.tipo = 'UNICA' 
+								AND DATE_FORMAT(d.data_cadastro,'%m/%Y') = DATE_FORMAT(NOW(),'%m/%Y')))`
+	queryFilter := ` AND
+						((d.tipo = 'FIXA' AND DATE_FORMAT(d.data_cadastro,'%m/%Y') = DATE_FORMAT(?,'%m/%Y'))
+						OR (d.tipo = 'UNICA' AND (DATE_FORMAT(?,'%m/%Y') >= DATE_FORMAT(d.data_cadastro,'%m/%Y')) AND data_vencimento IS NOT NULL)
+						OR DATE_FORMAT(d.data_vencimento,'%m/%Y') = DATE_FORMAT(?,'%m/%Y'))`
+
 	queryView := `SELECT 
 					id,
 					titulo,
@@ -74,13 +86,16 @@ func (repositorio DespesaRepositorio) GetDespesas(user_id uint) ([]despesa.VDesp
 					FROM v_despesa d 
 					WHERE 
 					d.usuario = ?
-					AND
-					(DATE_FORMAT(d.data_vencimento,'%m/%y') = DATE_FORMAT(NOW(),'%m/%y') 
-							OR d.tipo = 'FIXA' 
-							OR (d.tipo = 'UNICA' 
-								AND DATE_FORMAT(d.data_cadastro,'%m/%y') = DATE_FORMAT(NOW(),'%m/%y')))`
+					`
+	var linhas *sql.Rows
+	var erro error
 
-	linhas, erro := repositorio.sql.Query(queryView, user_id)
+	if filter != "null" {
+		linhas, erro = repositorio.sql.Query(queryView+queryFilter, user_id, filter, filter, filter)
+	} else {
+		linhas, erro = repositorio.sql.Query(queryView+queryDefault, user_id)
+	}
+
 	if erro != nil {
 		return nil, erro
 	}

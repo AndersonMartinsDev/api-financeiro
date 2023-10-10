@@ -7,13 +7,13 @@ import (
 
 var despesasRotas = []Rota{
 	{
-		URI:          "/despesas",
+		URI:          "/despesas/{filtro}",
 		Metodo:       http.MethodGet,
 		Func:         controller.GetDespesas,
 		Autenticacao: true,
 	},
 	{
-		URI:          "/despesas/total",
+		URI:          "/despesas/total/mes",
 		Metodo:       http.MethodGet,
 		Func:         controller.GetTotalDespesas,
 		Autenticacao: true,
@@ -25,7 +25,7 @@ var despesasRotas = []Rota{
 		Autenticacao: true,
 	},
 	{
-		URI:          "/despesas/{id}",
+		URI:          "/despesas",
 		Metodo:       http.MethodGet,
 		Func:         controller.GetDespesasById,
 		Autenticacao: true,

@@ -36,12 +36,15 @@ func AtualizaEnvelopeDespesa(w http.ResponseWriter, r *http.Request) {
 // GetDespesasGerais busca todas as despesas gerais contendo o mes e o ano
 func GetDespesas(w http.ResponseWriter, r *http.Request) {
 	user, erro := autenticacao.ExtrairUsername(r)
+	parametro := mux.Vars(r)
+	dataFilter := parametro["filtro"]
+
 	if erro != nil {
 		respostas.Erro(w, http.StatusUnprocessableEntity, erro)
 		return
 	}
 
-	lista, erro := services.GetDespesas(user)
+	lista, erro := services.GetDespesas(user, dataFilter)
 	if erro != nil {
 		respostas.Erro(w, http.StatusInternalServerError, erro)
 		return
@@ -131,10 +134,10 @@ func GetDespesasById(w http.ResponseWriter, r *http.Request) {
 		respostas.Erro(w, http.StatusUnprocessableEntity, erro)
 		return
 	}
+	url := r.URL
+	index := url.Query().Get("index")
 
-	parametro := mux.Vars(r)
-
-	despesaId, erro := strconv.ParseUint(parametro["id"], 10, 64)
+	despesaId, erro := strconv.ParseUint(index, 10, 64)
 
 	if erro != nil {
 		respostas.Erro(w, http.StatusUnprocessableEntity, erro)

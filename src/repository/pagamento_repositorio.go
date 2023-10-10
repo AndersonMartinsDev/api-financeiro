@@ -15,7 +15,7 @@ func NewInstancePagamento(sql *sql.DB) *PagamentoRepositorio {
 
 func (repositorio *PagamentoRepositorio) Insert(pagamento despesa.Pagamento) error {
 
-	insert := `INSERT INTO pagamentos(valor,data_vencimento,despesa_id) values(?,?,?)`
+	insert := `INSERT INTO pagamentos(valor,data_vencimento,data_pagamento,forma_pagamento,despesa_id) values(?,?,?,?,?)`
 
 	statement, erro := repositorio.sql.Prepare(insert)
 
@@ -23,7 +23,7 @@ func (repositorio *PagamentoRepositorio) Insert(pagamento despesa.Pagamento) err
 		return erro
 	}
 	defer statement.Close()
-	_, erro = statement.Exec(pagamento.Valor, pagamento.DataVencimento.Time, pagamento.DespesaId)
+	_, erro = statement.Exec(pagamento.Valor, pagamento.DataVencimento.Time, pagamento.DataPagamento.Time, pagamento.FormaPagamento, pagamento.DespesaId)
 
 	return erro
 

@@ -7,7 +7,7 @@ import (
 )
 
 // GetDespesas busca todas as despesas do banco
-func GetDespesas(user_id uint) ([]despesa.VDespesa, error) {
+func GetDespesas(user_id uint, filter string) ([]despesa.VDespesa, error) {
 	db, erro := banco.Conectar()
 	if erro != nil {
 		return nil, erro
@@ -15,7 +15,7 @@ func GetDespesas(user_id uint) ([]despesa.VDespesa, error) {
 	defer db.Close()
 
 	repositorio := repository.NewInstanceDespesa(db)
-	despesas, erro := repositorio.GetDespesas(user_id)
+	despesas, erro := repositorio.GetDespesas(user_id, filter)
 
 	if erro != nil {
 		return nil, erro
@@ -58,7 +58,7 @@ func NovaDespesa(entity despesa.DespesaPagamento) (uint, error) {
 	id, erro := repositorio.Insert(entity.Despesa)
 
 	go func() {
-		if entity.Despesa.Tipo == despesa.PARCELADA {
+		if entity.Despesa.Tipo != despesa.FIXA {
 			for _, v := range entity.Pagamentos {
 				v.DespesaId = id
 				if erro := v.Check(); erro == nil {
