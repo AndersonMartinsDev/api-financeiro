@@ -19,3 +19,14 @@ func GetTotaisChart(usuarioId uint) (home.TotaisInfoModel, error) {
 	totais.PorcentagemPie = uint(porcentagem)
 	return totais, erro
 }
+
+func GetTotaisCard(usuarioId uint) (home.TotaisCardInfo, error) {
+	db, erro := banco.Conectar()
+	if erro != nil {
+		return home.TotaisCardInfo{}, nil
+	}
+	defer db.Close()
+
+	repositorio := repository.NewInstanceHome(db)
+	return repositorio.GetTotaisCard(usuarioId)
+}

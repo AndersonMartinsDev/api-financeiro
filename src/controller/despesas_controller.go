@@ -60,8 +60,10 @@ func GetTotalDespesas(w http.ResponseWriter, r *http.Request) {
 		respostas.Erro(w, http.StatusUnprocessableEntity, erro)
 		return
 	}
+	url := r.URL
+	filter := url.Query().Get("data")
 
-	row, erro := services.GetTotalDespesaMes(user)
+	row, erro := services.GetTotalDespesaMes(user, filter)
 	if erro != nil {
 		respostas.Erro(w, http.StatusInternalServerError, erro)
 		return

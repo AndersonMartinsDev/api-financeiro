@@ -116,14 +116,14 @@ func AtualizaAssociacaoDespesaEnvelope(despesaId, envelopeId uint) error {
 	return repositorio.AtualizaEnvelopeDespesa(despesaId, envelopeId)
 }
 
-func GetTotalDespesaMes(userId uint) (float64, error) {
+func GetTotalDespesaMes(userId uint, filter string) (float64, error) {
 	db, erro := banco.Conectar()
 	if erro != nil {
 		return 0, erro
 	}
 	defer db.Close()
 	repositorio := repository.NewInstanceDespesa(db)
-	return repositorio.GetTotalDespesaPorMes(userId)
+	return repositorio.GetTotalDespesaPorMes(userId, filter)
 }
 
 func DeletaDespesa(despesaId uint, userId uint) error {

@@ -21,3 +21,17 @@ func GetTotaisChart(w http.ResponseWriter, r *http.Request) {
 
 	respostas.JSON(w, http.StatusOK, totais)
 }
+
+func GetTotaisCard(w http.ResponseWriter, r *http.Request) {
+	user, erro := autenticacao.ExtrairUsername(r)
+	if erro != nil {
+		respostas.Erro(w, http.StatusUnprocessableEntity, erro)
+		return
+	}
+	card, erro := services.GetTotaisCard(user)
+	if erro != nil {
+		respostas.Erro(w, http.StatusInternalServerError, erro)
+	}
+
+	respostas.JSON(w, http.StatusOK, card)
+}

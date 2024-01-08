@@ -12,4 +12,10 @@ var homeRotas = []Rota{
 		Func:         controller.GetTotaisChart,
 		Autenticacao: true,
 	},
+	{
+		URI:          "/home/cards",
+		Metodo:       http.MethodGet,
+		Func:         controller.GetTotaisCard,
+		Autenticacao: true,
+	},
 }

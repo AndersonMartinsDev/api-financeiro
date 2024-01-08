@@ -186,17 +186,30 @@ func (repositorio DespesaRepositorio) AtualizaEnvelopeDespesa(despesaId, envelop
 	_, erro = statement.Exec(envelopeId, despesaId)
 	return erro
 }
-func (repositorio DespesaRepositorio) GetTotalDespesaPorMes(userId uint) (float64, error) {
+func (repositorio DespesaRepositorio) GetTotalDespesaPorMes(userId uint, filter string) (float64, error) {
+	queryDefault := ` AND
+					(DATE_FORMAT(d.data_vencimento,'%m/%Y') = DATE_FORMAT(NOW(),'%m/%Y') 
+							OR d.tipo = 'FIXA' 
+							OR (d.tipo = 'UNICA' 
+								AND DATE_FORMAT(d.data_cadastro,'%m/%Y') = DATE_FORMAT(NOW(),'%m/%Y')))`
+	queryFilter := ` AND
+						((d.tipo = 'FIXA' AND (DATE_FORMAT(?,'%m/%Y') >= DATE_FORMAT(d.data_cadastro,'%m/%Y')))
+						OR (d.tipo = 'UNICA' AND (DATE_FORMAT(?,'%m/%Y') >= DATE_FORMAT(d.data_cadastro,'%m/%Y')) AND data_vencimento IS NOT NULL)
+						OR DATE_FORMAT(d.data_vencimento,'%m/%Y') = DATE_FORMAT(?,'%m/%Y'))`
+
 	query_total_mes := `SELECT 
-							ROUND(SUM(valor) , 2)
+							ROUND(SUM(IF(d.valor IS NULL,0.00,d.valor)),2) as valor
 							FROM v_despesa d
-							WHERE d.usuario = ?
-							AND
-							(DATE_FORMAT(d.data_vencimento,'%m/%y') = DATE_FORMAT(NOW(),'%m/%y') 
-									OR d.tipo = 'FIXA' 
-									OR (d.tipo = 'UNICA' 
-										AND DATE_FORMAT(d.data_cadastro,'%m/%y') = DATE_FORMAT(NOW(),'%m/%y')))`
-	total, erro := repositorio.sql.Query(query_total_mes, userId)
+							WHERE d.usuario = ?`
+
+	var total *sql.Rows
+	var erro error
+
+	if filter != "null" {
+		total, erro = repositorio.sql.Query(query_total_mes+queryFilter, userId, filter, filter, filter)
+	} else {
+		total, erro = repositorio.sql.Query(query_total_mes+queryDefault, userId)
+	}
 	if erro != nil {
 		return 0, erro
 	}
